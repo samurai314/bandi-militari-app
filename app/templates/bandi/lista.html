@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Bandi e scadenze{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Bandi e scadenze</h2>
+  <p style="font-size:0.85rem;">Dati raccolti da fonti pubbliche/ufficiali (Ministero della Difesa, Arma dei Carabinieri, Guardia di Finanza).</p>
+  <div class="disclaimer">
+    Verifica sempre il testo integrale del bando ufficiale in Gazzetta Ufficiale o sul sito istituzionale
+    prima di presentare domanda: date, requisiti e posti possono essere rettificati con decreti successivi.
+  </div>
+  <p>
+    <a class="btn btn-secondary {% if not filtro_stato %}btn{% endif %}" href="{{ url_for('bandi.lista') }}">Tutti</a>
+    <a class="btn btn-secondary" href="{{ url_for('bandi.lista', stato='attivo') }}">Attivi</a>
+    <a class="btn btn-secondary" href="{{ url_for('bandi.lista', stato='chiuso') }}">Chiusi</a>
+    <a class="btn btn-secondary" href="{{ url_for('bandi.lista', stato='previsto') }}">Previsti</a>
+  </p>
+</div>
+
+{% for item in bandi %}
+  {% set b = item.row %}
+  <div class="card">
+    <h3><a href="{{ url_for('bandi.dettaglio', bando_id=b['id']) }}">{{ b['titolo'] }}</a></h3>
+    <p>
+      <span class="tag">{{ b['corpo'] }}</span>
+      <span class="tag">{{ b['categoria'] }}</span>
+      <span class="badge badge-{{ item.stato_codice }}">{{ item.stato_label }}</span>
+    </p>
+    {% if item.giorni is not none %}
+      <p style="font-size:0.9rem;">
+        {% if item.giorni >= 0 %}Scade tra <strong>{{ item.giorni }} giorni</strong> ({{ b['data_scadenza'] }}){% else %}Scaduto il {{ b['data_scadenza'] }}{% endif %}
+      </p>
+    {% endif %}
+    <p style="font-size:0.9rem;color:#555;">{{ b['posti'] }}</p>
+  </div>
+{% else %}
+  <p>Nessun bando in questa categoria.</p>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="card">
+  {% if bando %}
+    <h2>{{ bando['titolo'] }}</h2>
+    <p><span class="tag">{{ bando['corpo'] }}</span><span class="tag">{{ bando['categoria'] }}</span></p>
+    {% if giorni_countdown is not none %}
+      {% if giorni_countdown >= 0 %}
+        <p><strong style="font-size:1.5rem;color:var(--rosso);">{{ giorni_countdown }} giorni</strong> alla scadenza della domanda.</p>
+      {% else %}
+        <p class="disclaimer">La scadenza di questo bando è passata ({{ bando['data_scadenza'] }}). Puoi comunque usarlo come riferimento di studio, oppure sceglierne un altro dai <a href="{{ url_for('bandi.lista') }}">bandi attivi</a>.</p>
+      {% endif %}
+    {% else %}
+      <p class="disclaimer">Data non ancora ufficiale per questo bando: è una stima su base storica, verifica periodicamente.</p>
+    {% endif %}
+    <a href="{{ url_for('bandi.dettaglio', bando_id=bando['id']) }}">Vedi dettaglio bando →</a>
+  {% else %}
+    <p>Nessun bando selezionato.</p>
+  {% endif %}
+</div>
+
+<div class="grid-3">
+  <div class="card">
+    <h3>💪 Fisico</h3>
+    <p>Livello: <strong>{{ livello }}</strong></p>
+    <p>Settimana di piano: <strong>{{ settimana_fisico }}</strong></p>
+    <a class="btn btn-secondary" href="{{ url_for('fisico.piano') }}">Vedi piano</a>
+  </div>
+  <div class="card">
+    <h3>📚 Quiz</h3>
+    <p>Precisione: <strong>{{ pct_quiz }}%</strong> ({{ tentativi_totali }} risposte)</p>
+    <a class="btn btn-secondary" href="{{ url_for('quiz.home') }}">Fai un quiz</a>
+  </div>
+  <div class="card">
+    <h3>🗣️ Colloquio</h3>
+    <p>Simulazioni fatte: <strong>{{ n_colloquio }}</strong></p>
+    <a class="btn btn-secondary" href="{{ url_for('colloquio.home') }}">Allenati</a>
+  </div>
+</div>
+
+<div class="card">
+  <h3>🔥 Streak e traguardi</h3>
+  <div class="streak-box">
+    <div>
+      <div class="streak-number">{{ streak['current_streak'] if streak else 0 }}</div>
+      <div style="font-size:0.8rem;color:#777;">giorni di fila</div>
+    </div>
+    <div>
+      <div class="streak-number">{{ streak['longest_streak'] if streak else 0 }}</div>
+      <div style="font-size:0.8rem;color:#777;">record personale</div>
+    </div>
+    <div>
+      {% if badge_labels %}
+        {% for b in badge_labels %}<span class="tag">🏅 {{ b }}</span>{% endfor %}
+      {% else %}
+        <span style="font-size:0.85rem;color:#999;">Ancora nessun badge: continua così!</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>📋 Checklist documenti</h3>
+  <div class="progress-bar"><div style="width:{{ (100*checklist_fatti/checklist_totale) if checklist_totale else 0 }}%"></div></div>
+  <p style="font-size:0.85rem;">{{ checklist_fatti }} / {{ checklist_totale }} completati — <a href="{{ url_for('checklist.lista') }}">vai alla checklist</a></p>
+</div>
+
+{% endblock %}

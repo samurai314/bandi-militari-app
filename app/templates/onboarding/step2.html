@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Onboarding - Situazione fisica{% endblock %}
+{% block content %}
+<div class="stepper">
+  <span>1. Bando</span>
+  <span class="attivo">2. Situazione fisica</span>
+  <span>3. Allenamento</span>
+</div>
+
+<div class="card">
+  <h2>La tua situazione fisica di partenza</h2>
+  <div class="disclaimer">
+    Questi dati servono solo ad adattare il piano di allenamento, non hanno alcun valore diagnostico
+    o medico. In caso di dubbi o dolori persistenti consulta un medico.
+  </div>
+
+  <form method="post">
+    <label>Sport praticato (se nessuno, lascia vuoto)</label>
+    <input type="text" name="sport" placeholder="es. corsa, calcio, palestra...">
+
+    <label>Da quanti anni lo pratichi</label>
+    <input type="number" name="sport_anni" min="0" max="80">
+
+    <label>Livello percepito</label>
+    <select name="livello">
+      <option value="principiante">Principiante</option>
+      <option value="intermedio">Intermedio</option>
+      <option value="avanzato">Avanzato</option>
+    </select>
+
+    <label><input type="checkbox" name="non_lo_so" style="width:auto;display:inline;"> Non conosco i miei valori: guidami con un test la prima settimana</label>
+
+    <label>Piegamenti sulle braccia (massimo in una serie)</label>
+    <input type="number" name="piegamenti" min="0" max="200">
+
+    <label>Trazioni alla sbarra (massimo in una serie)</label>
+    <input type="number" name="trazioni" min="0" max="100">
+
+    <label>Distanza di corsa testata</label>
+    <select name="corsa_distanza">
+      <option value="1000">1000 m</option>
+      <option value="2000" selected>2000 m</option>
+      <option value="3000">3000 m</option>
+    </select>
+
+    <label>Tempo impiegato (in secondi, es. 9 minuti 30 = 570)</label>
+    <input type="number" name="corsa_tempo_sec" min="0" max="7200">
+
+    <label>Limitazioni fisiche pregresse (facoltativo, solo per adattare il piano)</label>
+    <textarea name="limitazioni" rows="2" placeholder="es. vecchio infortunio al ginocchio..."></textarea>
+
+    <button class="btn" type="submit">Continua</button>
+  </form>
+</div>
+{% endblock %}

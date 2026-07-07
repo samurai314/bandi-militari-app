@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ b['titolo'] }}{% endblock %}
+{% block content %}
+<div class="card">
+  <p><a href="{{ url_for('bandi.lista') }}">← Torna ai bandi</a></p>
+  <h2>{{ b['titolo'] }}</h2>
+  <p>
+    <span class="tag">{{ b['corpo'] }}</span>
+    <span class="tag">{{ b['categoria'] }}</span>
+    <span class="badge badge-{{ stato_codice }}">{{ stato_label }}</span>
+  </p>
+
+  {% if giorni is not none %}
+    <p>{% if giorni >= 0 %}Scadenza domanda tra <strong>{{ giorni }} giorni</strong> — {{ b['data_scadenza'] }}{% else %}Scaduto il {{ b['data_scadenza'] }}{% endif %}</p>
+  {% endif %}
+
+  <p><strong>Posti:</strong> {{ b['posti'] }}</p>
+  <p>{{ b['descrizione'] }}</p>
+
+  {% if b['note'] %}<div class="disclaimer">{{ b['note'] }}</div>{% endif %}
+
+  <div class="disclaimer rosso">
+    Fonte: <a href="{{ b['fonte_url'] }}" target="_blank" rel="noopener">{{ b['fonte_url'] }}</a>
+    ({{ b['fonte_tipo'] }}{% if b['data_pubblicazione'] %}, pubblicato il {{ b['data_pubblicazione'] }}{% endif %}).
+    Verifica sempre il testo integrale sul sito ufficiale e in Gazzetta Ufficiale prima di presentare domanda.
+  </div>
+</div>
+{% endblock %}

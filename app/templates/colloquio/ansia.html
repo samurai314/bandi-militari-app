@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Gestione dell'ansia da colloquio{% endblock %}
+{% block content %}
+<div class="card">
+  <p><a href="{{ url_for('colloquio.home') }}">← Torna al colloquio</a></p>
+  <h2>Gestione dell'ansia da colloquio</h2>
+  <div class="disclaimer rosso">
+    Indicazioni pratiche di preparazione generale, non un percorso terapeutico: non sostituiscono
+    uno psicologo o un medico. Se l'ansia è persistente o invalidante, parlarne con un professionista
+    è il passo giusto.
+  </div>
+</div>
+
+{% for s in sezioni %}
+  <div class="card">
+    <h3>{{ s.titolo }}</h3>
+    <ul>
+      {% for p in s.punti %}<li>{{ p }}</li>{% endfor %}
+    </ul>
+  </div>
+{% endfor %}
+{% endblock %}

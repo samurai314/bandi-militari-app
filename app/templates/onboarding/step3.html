@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Onboarding - Contesto allenamento{% endblock %}
+{% block content %}
+<div class="stepper">
+  <span>1. Bando</span>
+  <span>2. Situazione fisica</span>
+  <span class="attivo">3. Allenamento</span>
+</div>
+
+<div class="card">
+  <h2>Dove e quanto puoi allenarti?</h2>
+  <form method="post">
+    <label>Contesto di allenamento disponibile</label>
+    <select name="contesto">
+      <option value="corpo_libero">Solo corpo libero</option>
+      <option value="palestra">Palestra</option>
+      <option value="entrambi" selected>Entrambi</option>
+      <option value="esterno">Spazio esterno (parco, pista...)</option>
+    </select>
+
+    <label>Giorni disponibili a settimana</label>
+    <select name="giorni_settimana">
+      <option value="3">3 giorni</option>
+      <option value="4" selected>4 giorni</option>
+      <option value="5">5 giorni</option>
+      <option value="6">6 giorni</option>
+    </select>
+
+    <button class="btn" type="submit">Genera il mio piano</button>
+  </form>
+</div>
+{% endblock %}

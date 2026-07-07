@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Risultati quiz{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Risultato: {{ state.corrette }} / {{ state.question_ids|length }}</h2>
+  <div class="progress-bar"><div style="width:{{ (100*state.corrette/(state.question_ids|length)) if state.question_ids else 0 }}%"></div></div>
+  <p>
+    <a class="btn" href="{{ url_for('quiz.home') }}">Torna ai quiz</a>
+    <a class="btn btn-outline" href="{{ url_for('quiz.statistiche') }}">Vedi statistiche</a>
+  </p>
+</div>
+
+{% for r in state.risposte %}
+  <div class="card" style="margin-bottom:0.6rem;">
+    <p style="font-weight:600;">{{ r.domanda }}</p>
+    <p style="font-size:0.9rem;">
+      {% if r.corretto %}
+        ✅ Corretto ({{ r.risposta_giusta }})
+      {% else %}
+        ❌ Hai risposto {{ r.risposta_data or '—' }}, la risposta corretta era {{ r.risposta_giusta }}
+      {% endif %}
+    </p>
+    {% if r.spiegazione %}<p style="font-size:0.85rem;color:#666;">{{ r.spiegazione }}</p>{% endif %}
+  </div>
+{% endfor %}
+{% endblock %}

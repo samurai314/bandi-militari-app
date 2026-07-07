@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Chiedi sui bandi{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Fai una domanda sui bandi indicizzati</h2>
+  <div class="disclaimer">
+    Prototipo: questa è una ricerca per parole chiave sui testi dei bandi indicizzati, non un agente
+    conversazionale con un modello linguistico collegato. Ogni risultato riporta sempre la fonte:
+    verifica comunque il bando ufficiale integrale prima di presentare domanda.
+  </div>
+  <form method="post">
+    <input type="text" name="domanda" value="{{ domanda }}" placeholder="es. Quando scade il bando VFI Marina 2026?" required>
+    <button class="btn" type="submit">Cerca</button>
+  </form>
+</div>
+
+{% if domanda %}
+  {% if risultati %}
+    {% for b in risultati %}
+      <div class="card">
+        <h3>{{ b['titolo'] }}</h3>
+        <p><span class="tag">{{ b['corpo'] }}</span><span class="tag">{{ b['categoria'] }}</span></p>
+        <p>{{ b['descrizione'] }}</p>
+        <div class="disclaimer rosso">
+          Fonte: <a href="{{ b['fonte_url'] }}" target="_blank" rel="noopener">{{ b['fonte_url'] }}</a>
+          ({{ b['fonte_tipo'] }}{% if b['data_pubblicazione'] %}, pubblicato il {{ b['data_pubblicazione'] }}{% endif %})
+        </div>
+        <a href="{{ url_for('bandi.dettaglio', bando_id=b['id']) }}">Vedi dettaglio →</a>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="card"><p>Nessun bando indicizzato corrisponde alla tua domanda. Prova a riformularla o consulta direttamente <a href="{{ url_for('bandi.lista') }}">l'elenco bandi</a>.</p></div>
+  {% endif %}
+{% endif %}
+{% endblock %}

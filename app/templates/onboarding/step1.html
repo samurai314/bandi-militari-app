@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Onboarding - Scegli il bando{% endblock %}
+{% block content %}
+<div class="stepper">
+  <span class="attivo">1. Bando</span>
+  <span>2. Situazione fisica</span>
+  <span>3. Allenamento</span>
+</div>
+
+<div class="card">
+  <h2>Per quale bando ti stai preparando?</h2>
+  <p>Cerca tra i bandi attivi, chiusi (utili per capire la struttura) o previsti su base storica.</p>
+
+  <form method="get" style="flex-direction:row;flex-wrap:wrap;gap:0.5rem;align-items:flex-end;">
+    <div style="flex:1;min-width:180px;">
+      <label>Cerca</label>
+      <input type="text" name="q" value="{{ q }}" placeholder="es. Carabinieri, VFI...">
+    </div>
+    <div style="min-width:180px;">
+      <label>Corpo</label>
+      <select name="corpo">
+        <option value="">Tutti</option>
+        {% for c in corpi %}
+          <option value="{{ c['corpo'] }}" {% if corpo_filtro == c['corpo'] %}selected{% endif %}>{{ c['corpo'] }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-secondary" type="submit">Filtra</button>
+  </form>
+</div>
+
+<form method="post">
+  {% for b in bandi %}
+    <label class="card" style="cursor:pointer;font-weight:normal;">
+      <input type="radio" name="bando_id" value="{{ b['id'] }}" required style="width:auto;display:inline;">
+      <strong>{{ b['titolo'] }}</strong><br>
+      <span class="tag">{{ b['corpo'] }}</span><span class="tag">{{ b['categoria'] }}</span>
+      {% if b['stimato'] %}<span class="badge badge-previsto">Previsto / stima</span>{% endif %}
+      <p style="margin:0.5rem 0 0;font-size:0.88rem;color:#555;">{{ b['descrizione'] }}</p>
+    </label>
+  {% else %}
+    <p>Nessun bando trovato con questi filtri.</p>
+  {% endfor %}
+
+  <button class="btn" type="submit">Continua</button>
+</form>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Piano fisico{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Il tuo piano fisico</h2>
+  <p>Livello di partenza classificato: <strong>{{ piano.livello }}</strong> — Piano su <strong>{{ piano.n_settimane }} settimane</strong>, {{ piano.giorni_a_settimana }} giorni/settimana.</p>
+  <div class="disclaimer">
+    Piano generato da un motore a regole deterministico sulla base dei dati di onboarding, non da un
+    medico o preparatore atletico reale. In caso di dolori persistenti o dubbi, consulta un professionista
+    prima di proseguire. Le soglie di livello usate qui sono indicative e generali: fai sempre riferimento
+    alla tabella ufficiale del bando scelto per i requisiti minimi reali.
+  </div>
+  {% if bando %}<p style="font-size:0.85rem;">Bando di riferimento: <a href="{{ url_for('bandi.dettaglio', bando_id=bando['id']) }}">{{ bando['titolo'] }}</a></p>{% endif %}
+</div>
+
+{% for w in piano.settimane %}
+  <div class="week-block {% if w.deload %}deload{% endif %} {% if w.test_finale %}test{% endif %}">
+    <h3>
+      Settimana {{ w.numero }}
+      {% if w.deload %}<span class="badge badge-previsto">Scarico</span>{% endif %}
+      {% if w.test_finale %}<span class="badge badge-chiuso">Test finale / simulazione</span>{% endif %}
+    </h3>
+    {% for giorno in w.giorni %}
+      <p><strong>Giorno {{ loop.index }} — {{ giorno.tipo }}</strong></p>
+      <ul>
+        {% for e in giorno.esercizi %}<li>{{ e }}</li>{% endfor %}
+      </ul>
+    {% endfor %}
+  </div>
+{% endfor %}
+{% endblock %}

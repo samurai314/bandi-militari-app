@@ -1,0 +1,144 @@
+import sqlite3
+from pathlib import Path
+
+from flask import current_app, g
+
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS bandi (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    corpo TEXT NOT NULL,
+    categoria TEXT NOT NULL,
+    titolo TEXT NOT NULL,
+    posti TEXT,
+    descrizione TEXT,
+    testo_indicizzato TEXT,
+    data_pubblicazione TEXT,
+    data_apertura TEXT,
+    data_scadenza TEXT,
+    stimato INTEGER DEFAULT 0,
+    fonte_url TEXT NOT NULL,
+    fonte_tipo TEXT,
+    note TEXT
+);
+
+CREATE TABLE IF NOT EXISTS profiles (
+    user_id INTEGER PRIMARY KEY,
+    bando_id INTEGER,
+    sport TEXT,
+    sport_anni INTEGER,
+    livello TEXT,
+    piegamenti INTEGER,
+    trazioni INTEGER,
+    corsa_distanza INTEGER,
+    corsa_tempo_sec INTEGER,
+    non_lo_so INTEGER DEFAULT 0,
+    limitazioni TEXT,
+    contesto TEXT,
+    giorni_settimana INTEGER,
+    onboarding_step INTEGER DEFAULT 1,
+    onboarding_completed INTEGER DEFAULT 0,
+    onboarding_completed_at TEXT,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(bando_id) REFERENCES bandi(id)
+);
+
+CREATE TABLE IF NOT EXISTS quiz_questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    materia TEXT NOT NULL,
+    domanda TEXT NOT NULL,
+    opzione_a TEXT NOT NULL,
+    opzione_b TEXT NOT NULL,
+    opzione_c TEXT NOT NULL,
+    opzione_d TEXT NOT NULL,
+    risposta TEXT NOT NULL,
+    spiegazione TEXT
+);
+
+CREATE TABLE IF NOT EXISTS quiz_progress (
+    user_id INTEGER NOT NULL,
+    question_id INTEGER NOT NULL,
+    repetitions INTEGER DEFAULT 0,
+    interval_days INTEGER DEFAULT 0,
+    ease_factor REAL DEFAULT 2.5,
+    next_review TEXT,
+    last_result INTEGER,
+    attempts INTEGER DEFAULT 0,
+    correct_count INTEGER DEFAULT 0,
+    PRIMARY KEY (user_id, question_id)
+);
+
+CREATE TABLE IF NOT EXISTS quiz_sessions_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    mode TEXT NOT NULL,
+    materia TEXT,
+    total INTEGER,
+    correct INTEGER,
+    timestamp TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS checklist_template (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    testo TEXT NOT NULL,
+    ordine INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS user_checklist (
+    user_id INTEGER NOT NULL,
+    item_id INTEGER NOT NULL,
+    checked INTEGER DEFAULT 0,
+    PRIMARY KEY (user_id, item_id)
+);
+
+CREATE TABLE IF NOT EXISTS streaks (
+    user_id INTEGER PRIMARY KEY,
+    current_streak INTEGER DEFAULT 0,
+    longest_streak INTEGER DEFAULT 0,
+    last_activity_date TEXT
+);
+
+CREATE TABLE IF NOT EXISTS badges (
+    user_id INTEGER NOT NULL,
+    codice TEXT NOT NULL,
+    earned_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, codice)
+);
+
+CREATE TABLE IF NOT EXISTS colloquio_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    domanda TEXT NOT NULL,
+    risposta TEXT NOT NULL,
+    timestamp TEXT NOT NULL
+);
+"""
+
+
+def get_db():
+    if "db" not in g:
+        g.db = sqlite3.connect(current_app.config["DATABASE"])
+        g.db.row_factory = sqlite3.Row
+        g.db.execute("PRAGMA foreign_keys = ON")
+    return g.db
+
+
+def close_db(e=None):
+    db = g.pop("db", None)
+    if db is not None:
+        db.close()
+
+
+def init_app(app):
+    Path(app.config["DATABASE"]).parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(app.config["DATABASE"])
+    conn.executescript(SCHEMA)
+    conn.commit()
+    conn.close()
+    app.teardown_appcontext(close_db)

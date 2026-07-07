@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Checklist documenti{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Checklist documenti</h2>
+  <p style="font-size:0.85rem;">Lista generica orientativa: verifica sempre l'elenco esatto richiesto dal bando specifico.</p>
+  {% for item in items %}
+    <form method="post" style="display:inline;">
+      <input type="hidden" name="item_id" value="{{ item['id'] }}">
+      <input type="hidden" name="checked" value="{{ 0 if item['id'] in checked_ids else 1 }}">
+      <div class="checklist-item {% if item['id'] in checked_ids %}done{% endif %}">
+        <button type="submit" class="btn btn-secondary" style="padding:0.2rem 0.5rem;">
+          {{ '✓' if item['id'] in checked_ids else '○' }}
+        </button>
+        <span>{{ item['testo'] }}</span>
+      </div>
+    </form>
+  {% endfor %}
+</div>
+{% endblock %}

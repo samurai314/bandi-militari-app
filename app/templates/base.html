@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Preparazione Bandi Militari{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="navbar">
+    <div class="brand">🎖️ Preparazione Bandi Militari</div>
+    <nav>
+      {% if current_user %}
+        <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('bandi.lista') }}">Bandi</a>
+        <a href="{{ url_for('quiz.home') }}">Quiz</a>
+        <a href="{{ url_for('fisico.piano') }}">Fisico</a>
+        <a href="{{ url_for('colloquio.home') }}">Colloquio</a>
+        <a href="{{ url_for('checklist.lista') }}">Checklist</a>
+        <a href="{{ url_for('agente.ask') }}">Chiedi sui bandi</a>
+        <a href="{{ url_for('auth.logout') }}">Esci</a>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Accedi</a>
+        <a href="{{ url_for('auth.register') }}">Registrati</a>
+      {% endif %}
+    </nav>
+  </div>
+
+  <div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-error">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </div>
+
+  <div class="footer">
+    Prototipo dimostrativo — non è un canale ufficiale del Ministero della Difesa o dei Corpi militari.
+    Verifica sempre bandi, scadenze e requisiti sulla Gazzetta Ufficiale e sui siti istituzionali prima di presentare domanda.
+  </div>
+</body>
+</html>

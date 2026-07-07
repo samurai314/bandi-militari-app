@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Preparazione Bandi Militari{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Preparati al tuo concorso militare</h2>
+  <p>Piano fisico personalizzato, quiz di cultura generale con ripasso intelligente, checklist documenti e
+     bandi aggiornati da fonti ufficiali — in un solo posto.</p>
+  <p>
+    <a class="btn" href="{{ url_for('auth.register') }}">Inizia ora</a>
+    <a class="btn btn-outline" href="{{ url_for('auth.login') }}">Ho già un account</a>
+  </p>
+</div>
+<div class="grid-3">
+  <div class="card">
+    <h3>💪 Piano fisico</h3>
+    <p>Un motore a regole genera una progressione periodizzata in base al tuo livello di partenza.</p>
+  </div>
+  <div class="card">
+    <h3>📚 Quiz</h3>
+    <p>Domande originali di cultura generale con ripasso a ripetizione dilazionata sui punti deboli.</p>
+  </div>
+  <div class="card">
+    <h3>📅 Bandi</h3>
+    <p>Scadenze reali raccolte da fonti ufficiali, sempre con link alla fonte e disclaimer.</p>
+  </div>
+</div>
+{% endblock %}

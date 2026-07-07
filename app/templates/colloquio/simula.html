@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Simulazione colloquio{% endblock %}
+{% block content %}
+<div class="card">
+  <p><a href="{{ url_for('colloquio.home') }}">← Cambia domanda</a></p>
+  <h2>{{ domanda }}</h2>
+  <form method="post">
+    <input type="hidden" name="domanda" value="{{ domanda }}">
+    <textarea name="risposta" rows="6" placeholder="Scrivi qui la tua risposta come se fossi in colloquio...">{{ risposta }}</textarea>
+    <button class="btn" type="submit">Ricevi feedback</button>
+  </form>
+</div>
+
+{% if feedback %}
+<div class="card">
+  <h3>Feedback (euristico, non clinico)</h3>
+  <p style="font-size:0.85rem;color:#777;">{{ feedback.n_parole }} parole</p>
+  <ul>
+    {% for o in feedback.osservazioni %}<li>{{ o }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+{% endblock %}

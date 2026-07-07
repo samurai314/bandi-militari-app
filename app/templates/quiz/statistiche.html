@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Statistiche quiz{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Statistiche per materia</h2>
+  <table>
+    <tr><th>Materia</th><th>Domande totali</th><th>Risposte date</th><th>Precisione</th></tr>
+    {% for s in stats %}
+      <tr>
+        <td>{{ s.materia }}</td>
+        <td>{{ s.totale }}</td>
+        <td>{{ s.tentativi }}</td>
+        <td>{% if s.percentuale is not none %}{{ s.percentuale }}%{% else %}—{% endif %}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="card">
+  <h3>Punti deboli (da ripassare)</h3>
+  {% if domande_deboli %}
+    <table>
+      <tr><th>Domanda</th><th>Materia</th><th>Corrette/Tentativi</th><th>Prossimo ripasso</th></tr>
+      {% for d in domande_deboli %}
+        <tr>
+          <td>{{ d['domanda'][:60] }}{% if d['domanda']|length > 60 %}…{% endif %}</td>
+          <td>{{ d['materia'] }}</td>
+          <td>{{ d['correct_count'] }}/{{ d['attempts'] }}</td>
+          <td>{{ d['next_review'] }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% else %}
+    <p>Fai qualche quiz per vedere qui i tuoi punti deboli.</p>
+  {% endif %}
+</div>
+{% endblock %}

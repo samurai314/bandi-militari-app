@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Colloquio{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Preparazione al colloquio/attitudinale</h2>
+  <div class="disclaimer rosso">
+    Questa sezione non è un test psicologico e non sostituisce in alcun modo la selezione
+    psicoattitudinale reale né lo psicologo militare. Il feedback qui sotto è generato da regole
+    euristiche su chiarezza e struttura del testo, non da un giudizio clinico o da un'AI generativa.
+  </div>
+  <p>La selezione psicoattitudinale reale valuta stabilità emotiva, motivazione e adattabilità
+     attraverso colloqui e test condotti da personale specializzato: qui puoi solo allenarti a
+     esprimerti in modo chiaro su domande motivazionali tipiche.</p>
+  <p><a class="btn btn-outline" href="{{ url_for('colloquio.ansia') }}">🧘 Gestione dell'ansia da colloquio</a></p>
+</div>
+
+<div class="card">
+  <h3>Scegli una domanda da simulare</h3>
+  {% for d in domande %}
+    <p><a class="btn btn-secondary" href="{{ url_for('colloquio.simula', domanda=d) }}">{{ d }}</a></p>
+  {% endfor %}
+</div>
+
+{% if storico %}
+<div class="card">
+  <h3>Le tue ultime risposte</h3>
+  {% for s in storico %}
+    <p style="font-size:0.85rem;"><strong>{{ s['domanda'] }}</strong><br>{{ s['risposta'][:120] }}{% if s['risposta']|length > 120 %}…{% endif %}</p>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

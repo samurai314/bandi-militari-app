@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Quiz - Domanda {{ numero }}{% endblock %}
+{% block content %}
+<div class="card">
+  <p style="font-size:0.85rem;color:#777;">Domanda {{ numero }} di {{ totale }} — modalità: {{ mode }}</p>
+  {% if secondi %}
+    <p class="quiz-timer" id="timer">Tempo rimanente: {{ secondi }}s</p>
+  {% endif %}
+  <h2>{{ q['domanda'] }}</h2>
+  <form method="post" id="quiz-form">
+    <label class="answer-option"><input type="radio" name="risposta" value="A" required style="width:auto;display:inline;"> A) {{ q['opzione_a'] }}</label>
+    <label class="answer-option"><input type="radio" name="risposta" value="B" style="width:auto;display:inline;"> B) {{ q['opzione_b'] }}</label>
+    <label class="answer-option"><input type="radio" name="risposta" value="C" style="width:auto;display:inline;"> C) {{ q['opzione_c'] }}</label>
+    <label class="answer-option"><input type="radio" name="risposta" value="D" style="width:auto;display:inline;"> D) {{ q['opzione_d'] }}</label>
+    <button class="btn" type="submit">Rispondi</button>
+  </form>
+</div>
+
+{% if secondi %}
+<script>
+  (function() {
+    let remaining = {{ secondi }};
+    const el = document.getElementById('timer');
+    const form = document.getElementById('quiz-form');
+    const interval = setInterval(function() {
+      remaining -= 1;
+      if (el) el.textContent = 'Tempo rimanente: ' + Math.max(remaining, 0) + 's';
+      if (remaining <= 0) {
+        clearInterval(interval);
+        form.submit();
+      }
+    }, 1000);
+  })();
+</script>
+{% endif %}
+{% endblock %}
