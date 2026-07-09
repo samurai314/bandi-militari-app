@@ -14,7 +14,11 @@
         <p class="disclaimer">La scadenza di questo bando è passata ({{ bando['data_scadenza'] }}). Puoi comunque usarlo come riferimento di studio, oppure sceglierne un altro dai <a href="{{ url_for('bandi.lista') }}">bandi attivi</a>.</p>
       {% endif %}
     {% else %}
-      <p class="disclaimer">Data non ancora ufficiale per questo bando: è una stima su base storica, verifica periodicamente.</p>
+      {% set finestra = finestra_prevista(bando['stima_periodo_da'], bando['stima_periodo_a']) %}
+      <p class="disclaimer">
+        {% if finestra %}📅 Bando non ancora pubblicato: atteso indicativamente tra <strong>{{ finestra }}</strong>, su base storica.
+        {% else %}Data non ancora ufficiale per questo bando: è una stima su base storica, verifica periodicamente.{% endif %}
+      </p>
     {% endif %}
     <a href="{{ url_for('bandi.dettaglio', bando_id=bando['id']) }}">Vedi dettaglio bando →</a>
   {% else %}

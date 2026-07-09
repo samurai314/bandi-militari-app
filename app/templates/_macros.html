@@ -1,12 +1,112 @@
-{% macro progress_ring(pct, colore='#d4af37', size=76) %}
+{% macro progress_ring(pct, colore='#2f9e44', size=76) %}
 {% set r = 30 %}
 {% set circ = 2 * 3.14159265 * r %}
 {% set offset = circ * (1 - (pct / 100)) %}
 <svg viewBox="0 0 76 76" width="{{ size }}" height="{{ size }}" class="progress-ring">
-  <circle cx="38" cy="38" r="{{ r }}" fill="none" stroke="rgba(233,230,218,0.1)" stroke-width="7"/>
+  <circle cx="38" cy="38" r="{{ r }}" fill="none" stroke="rgba(20,30,15,0.08)" stroke-width="7"/>
   <circle cx="38" cy="38" r="{{ r }}" fill="none" stroke="{{ colore }}" stroke-width="7"
     stroke-linecap="round" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ offset }}"
     transform="rotate(-90 38 38)"/>
-  <text x="38" y="43" text-anchor="middle" font-size="18" font-weight="700" fill="#f4f1e4">{{ pct }}%</text>
+  <text x="38" y="43" text-anchor="middle" font-size="18" font-weight="700" fill="#1b2117">{{ pct }}%</text>
 </svg>
+{% endmacro %}
+
+{% macro chat_ui(messaggi, azione_url, reset_url, titolo, disclaimer, ai_enabled, placeholder='Scrivi un messaggio...') %}
+<div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;">
+    <h2 style="margin:0;">{{ titolo }}</h2>
+    <form method="post" action="{{ reset_url }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-outline" style="padding:0.4rem 0.8rem;font-size:0.8rem;">Nuova conversazione</button>
+    </form>
+  </div>
+  <div class="disclaimer" style="margin-top:0.8rem;">{{ disclaimer | safe }}</div>
+</div>
+
+<div class="chat-container card">
+  <div class="chat-messages" id="chat-messages">
+    {% for m in messaggi %}
+      <div class="chat-bubble {{ m['ruolo'] }}">{{ m['contenuto'] }}</div>
+    {% else %}
+      <p style="color:var(--testo-muto);font-size:0.9rem;">Nessun messaggio ancora: scrivi la tua prima domanda qui sotto.</p>
+    {% endfor %}
+  </div>
+  <form class="chat-input-bar" id="chat-form">
+    <textarea id="chat-input" rows="1" placeholder="{{ placeholder }}" {{ '' if ai_enabled else 'disabled' }}></textarea>
+    <button type="submit" class="btn" id="chat-send" {{ '' if ai_enabled else 'disabled' }}>Invia</button>
+  </form>
+</div>
+
+<script>
+(function () {
+  var form = document.getElementById('chat-form');
+  var input = document.getElementById('chat-input');
+  var messages = document.getElementById('chat-messages');
+  var azioneUrl = {{ azione_url | tojson }};
+  var csrfToken = {{ csrf_token() | tojson }};
+
+  function scrollToBottom() {
+    messages.scrollTop = messages.scrollHeight;
+  }
+  scrollToBottom();
+
+  function addBubble(ruolo, testo) {
+    var div = document.createElement('div');
+    div.className = 'chat-bubble ' + ruolo;
+    div.textContent = testo;
+    messages.appendChild(div);
+    scrollToBottom();
+    return div;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var testo = input.value.trim();
+    if (!testo) return;
+    input.value = '';
+    input.disabled = true;
+
+    var placeholderVuoto = messages.querySelector('p');
+    if (placeholderVuoto) placeholderVuoto.remove();
+
+    addBubble('user', testo);
+    var assistantBubble = addBubble('assistant', '');
+
+    var body = new URLSearchParams();
+    body.set('messaggio', testo);
+    body.set('csrf_token', csrfToken);
+
+    fetch(azioneUrl, { method: 'POST', body: body })
+      .then(function (response) {
+        var reader = response.body.getReader();
+        var decoder = new TextDecoder();
+
+        function leggi() {
+          return reader.read().then(function (result) {
+            if (result.done) {
+              input.disabled = false;
+              input.focus();
+              return;
+            }
+            assistantBubble.textContent += decoder.decode(result.value, { stream: true });
+            scrollToBottom();
+            return leggi();
+          });
+        }
+        return leggi();
+      })
+      .catch(function () {
+        assistantBubble.textContent = 'Errore di connessione. Riprova.';
+        input.disabled = false;
+      });
+  });
+
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+})();
+</script>
 {% endmacro %}

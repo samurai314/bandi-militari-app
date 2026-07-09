@@ -33,9 +33,15 @@ def lista():
         if filtro_stato and filtro_stato != codice:
             continue
         giorni = None
+        settimane_preparazione = None
         if b["data_scadenza"]:
             giorni = (date.fromisoformat(b["data_scadenza"]) - date.today()).days
-        bandi.append(dict(row=b, stato_codice=codice, stato_label=label, giorni=giorni))
+            if giorni > 0:
+                settimane_preparazione = giorni // 7
+        bandi.append(dict(
+            row=b, stato_codice=codice, stato_label=label,
+            giorni=giorni, settimane_preparazione=settimane_preparazione,
+        ))
 
     return render_template("bandi/lista.html", bandi=bandi, filtro_stato=filtro_stato)
 
@@ -50,6 +56,12 @@ def dettaglio(bando_id):
         abort(404)
     codice, label = _stato(b)
     giorni = None
+    settimane_preparazione = None
     if b["data_scadenza"]:
         giorni = (date.fromisoformat(b["data_scadenza"]) - date.today()).days
-    return render_template("bandi/dettaglio.html", b=b, stato_codice=codice, stato_label=label, giorni=giorni)
+        if giorni > 0:
+            settimane_preparazione = giorni // 7
+    return render_template(
+        "bandi/dettaglio.html", b=b, stato_codice=codice, stato_label=label,
+        giorni=giorni, settimane_preparazione=settimane_preparazione,
+    )

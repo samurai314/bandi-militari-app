@@ -1,16 +1,48 @@
 {% extends "base.html" %}
 {% block title %}Registrati{% endblock %}
 {% block content %}
-<div class="card" style="max-width:400px;margin:0 auto;">
-  <h2>Crea il tuo account</h2>
-  <form method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>Email</label>
-    <input type="email" name="email" required autofocus>
-    <label>Password (min. 6 caratteri)</label>
-    <input type="password" name="password" required minlength="6">
-    <button class="btn" type="submit">Registrati</button>
-  </form>
-  <p style="margin-top:1rem;font-size:0.9rem;">Hai già un account? <a href="{{ url_for('auth.login') }}">Accedi</a></p>
+<div style="max-width:420px;margin:2rem auto 0;">
+  <div style="text-align:center;margin-bottom:1.5rem;">
+    <div style="font-size:2.2rem;">🎖️</div>
+    <h2 style="margin:0.3rem 0 0;">Crea il tuo account</h2>
+    <p style="color:var(--testo-muto);font-size:0.9rem;margin:0.3rem 0 0;">Piano fisico, quiz e assistente AI per prepararti al tuo concorso.</p>
+  </div>
+
+  <div class="card">
+    <form method="post" id="register-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label>Email</label>
+      <input type="email" name="email" required autofocus placeholder="nome@esempio.it">
+
+      <label>Password</label>
+      <input type="password" name="password" id="password" required minlength="6" placeholder="Almeno 6 caratteri">
+      <p id="password-hint" style="margin:-0.4rem 0 0;font-size:0.78rem;color:var(--testo-muto);">Minimo 6 caratteri</p>
+
+      <button class="btn" type="submit" style="margin-top:0.4rem;">Crea account →</button>
+    </form>
+  </div>
+
+  <p style="text-align:center;margin-top:1.2rem;font-size:0.9rem;color:var(--testo-attenuato);">
+    Hai già un account? <a href="{{ url_for('auth.login') }}">Accedi</a>
+  </p>
 </div>
+
+<script>
+  (function () {
+    var pwd = document.getElementById('password');
+    var hint = document.getElementById('password-hint');
+    pwd.addEventListener('input', function () {
+      if (pwd.value.length === 0) {
+        hint.textContent = 'Minimo 6 caratteri';
+        hint.style.color = 'var(--testo-muto)';
+      } else if (pwd.value.length < 6) {
+        hint.textContent = 'Ancora ' + (6 - pwd.value.length) + ' caratteri';
+        hint.style.color = 'var(--ambra-scuro)';
+      } else {
+        hint.textContent = '✓ Va bene';
+        hint.style.color = 'var(--verde)';
+      }
+    });
+  })();
+</script>
 {% endblock %}

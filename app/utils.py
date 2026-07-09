@@ -7,6 +7,26 @@ from flask import g, redirect, session, url_for
 from .db import get_db
 
 
+MESI_IT = [
+    "gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
+    "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre",
+]
+
+
+def formatta_finestra_prevista(stima_da, stima_a):
+    if not stima_da or not stima_a:
+        return None
+    da = date.fromisoformat(stima_da)
+    a = date.fromisoformat(stima_a)
+    mese_da = MESI_IT[da.month - 1]
+    mese_a = MESI_IT[a.month - 1]
+    if da.year == a.year:
+        if mese_da == mese_a:
+            return f"{mese_da} {da.year}"
+        return f"{mese_da} e {mese_a} {da.year}"
+    return f"{mese_da} {da.year} e {mese_a} {a.year}"
+
+
 def get_csrf_token():
     if "csrf_token" not in session:
         session["csrf_token"] = secrets.token_hex(32)

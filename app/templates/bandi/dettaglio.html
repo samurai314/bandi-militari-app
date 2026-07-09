@@ -12,6 +12,17 @@
 
   {% if giorni is not none %}
     <p>{% if giorni >= 0 %}Scadenza domanda tra <strong>{{ giorni }} giorni</strong> — {{ b['data_scadenza'] }}{% else %}Scaduto il {{ b['data_scadenza'] }}{% endif %}</p>
+  {% elif b['stimato'] %}
+    {% set finestra = finestra_prevista(b['stima_periodo_da'], b['stima_periodo_a']) %}
+    {% if finestra %}
+      <div class="disclaimer">📅 Bando non ancora pubblicato: atteso indicativamente tra <strong>{{ finestra }}</strong>, su base storica delle edizioni precedenti.</div>
+    {% endif %}
+  {% endif %}
+  {% if settimane_preparazione %}
+    <div class="disclaimer" style="border-left-color: var(--verde-brillante);">
+      ⏱️ Tempo stimato di preparazione da qui alla scadenza: <strong>{{ settimane_preparazione }} settimane</strong>
+      circa (basato sulla data odierna).
+    </div>
   {% endif %}
 
   <p><strong>Posti:</strong> {{ b['posti'] }}</p>

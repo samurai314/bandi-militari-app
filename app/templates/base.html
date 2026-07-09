@@ -6,11 +6,11 @@
   <title>{% block title %}Preparazione Bandi Militari{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
-  <meta name="theme-color" content="#12160f">
+  <meta name="theme-color" content="#2f9e44">
   <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
   <div class="navbar">
@@ -67,5 +67,9 @@
     Prototipo dimostrativo — non è un canale ufficiale del Ministero della Difesa o dei Corpi militari.
     Verifica sempre bandi, scadenze e requisiti sulla Gazzetta Ufficiale e sui siti istituzionali prima di presentare domanda.
   </div>
+
+  {% if current_user and request.endpoint not in ('agente.ask',) %}
+    <a href="{{ url_for('agente.ask') }}" class="ai-fab" title="Chiedi all'assistente AI sui bandi" aria-label="Apri assistente AI">💬</a>
+  {% endif %}
 </body>
 </html>

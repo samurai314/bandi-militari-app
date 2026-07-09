@@ -126,7 +126,26 @@ CREATE TABLE IF NOT EXISTS colloquio_log (
     risposta TEXT NOT NULL,
     timestamp TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    contesto TEXT NOT NULL,
+    ruolo TEXT NOT NULL,
+    contenuto TEXT NOT NULL,
+    timestamp TEXT NOT NULL
+);
 """
+
+# Colonne aggiunte dopo la prima release: le tabelle esistenti (anche già
+# popolate su un deploy precedente) vengono aggiornate con ALTER TABLE,
+# ignorando l'errore se la colonna esiste già (SQLite non supporta
+# "ADD COLUMN IF NOT EXISTS" in modo portabile).
+MIGRAZIONI = [
+    "ALTER TABLE bandi ADD COLUMN stima_periodo_da TEXT",
+    "ALTER TABLE bandi ADD COLUMN stima_periodo_a TEXT",
+    "ALTER TABLE quiz_questions ADD COLUMN fonte TEXT DEFAULT 'originale'",
+]
 
 
 def get_db():
@@ -135,6 +154,21 @@ def get_db():
         g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
     return g.db
+
+
+def salva_messaggio_chat(db_path, user_id, contesto, ruolo, contenuto):
+    """Apre una connessione indipendente da `g`: usata dentro i generator di
+    streaming, dove il contesto applicativo/di richiesta potrebbe già essere
+    stato chiuso quando il generator termina di produrre l'ultimo pezzo."""
+    from datetime import datetime
+
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        "INSERT INTO chat_messages (user_id, contesto, ruolo, contenuto, timestamp) VALUES (?, ?, ?, ?, ?)",
+        (user_id, contesto, ruolo, contenuto, datetime.utcnow().isoformat()),
+    )
+    conn.commit()
+    conn.close()
 
 
 def close_db(e=None):
@@ -147,6 +181,11 @@ def init_app(app):
     Path(app.config["DATABASE"]).parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(app.config["DATABASE"])
     conn.executescript(SCHEMA)
+    for statement in MIGRAZIONI:
+        try:
+            conn.execute(statement)
+        except sqlite3.OperationalError:
+            pass
     conn.commit()
     conn.close()
     app.teardown_appcontext(close_db)

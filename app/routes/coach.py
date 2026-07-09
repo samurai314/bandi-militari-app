@@ -1,39 +1,38 @@
-from datetime import date, datetime
+from datetime import datetime
 
 from flask import Blueprint, Response, current_app, redirect, render_template, request, stream_with_context, url_for
 
-from ..ai_assistant import SYSTEM_PROMPT_BANDI_CHAT, stream_chat
+from ..ai_assistant import SYSTEM_PROMPT_COACH_FISICO, build_coach_context, stream_chat
 from ..db import get_db, salva_messaggio_chat
+from ..fisico_engine import genera_piano
 from ..utils import get_current_user, login_required, onboarding_required
 
-bp = Blueprint("agente", __name__, url_prefix="/agente")
+bp = Blueprint("coach", __name__, url_prefix="/fisico/coach")
 
-CONTESTO = "bandi"
+CONTESTO = "coach_fisico"
 
 
-def _build_system_prompt(db):
-    bandi_rows = db.execute("SELECT * FROM bandi").fetchall()
-    blocchi = []
-    for b in bandi_rows:
-        blocchi.append(
-            f"### {b['titolo']}\n"
-            f"Corpo: {b['corpo']} | Categoria: {b['categoria']} | Posti: {b['posti']}\n"
-            f"Pubblicato: {b['data_pubblicazione'] or 'n.d.'} | Apertura: {b['data_apertura'] or 'n.d.'} | "
-            f"Scadenza: {b['data_scadenza'] or 'n.d.'}{' (STIMA, non ufficiale)' if b['stimato'] else ''}\n"
-            f"Descrizione: {b['descrizione']}\n"
-            f"Dettagli aggiuntivi: {b['testo_indicizzato']}\n"
-            f"Fonte: {b['fonte_url']} ({b['fonte_tipo']})\n"
-        )
-    contesto = "\n".join(blocchi)
-    oggi = f"Data di oggi: {date.today().isoformat()}. Usa questa data per stabilire se un bando è " \
-        "attivo (scadenza futura), chiuso (scadenza passata) o previsto (nessuna data ancora nota)."
-    return f"{SYSTEM_PROMPT_BANDI_CHAT}\n\n{oggi}\n\nCONTESTO (testi dei bandi indicizzati):\n{contesto}"
+def _build_system_prompt(db, user_id):
+    profile = db.execute("SELECT * FROM profiles WHERE user_id = ?", (user_id,)).fetchone()
+    bando = None
+    if profile["bando_id"]:
+        bando = db.execute("SELECT * FROM bandi WHERE id = ?", (profile["bando_id"],)).fetchone()
+    data_scadenza = bando["data_scadenza"] if bando else None
+    piano = genera_piano(profile, data_scadenza)
+    totale_sessioni = sum(len(w["giorni"]) for w in piano["settimane"])
+    sessioni_fatte = db.execute(
+        "SELECT COUNT(*) AS c FROM workout_log WHERE user_id = ?", (user_id,)
+    ).fetchone()["c"]
+    streak = db.execute("SELECT * FROM streaks WHERE user_id = ?", (user_id,)).fetchone()
+
+    contesto = build_coach_context(profile, piano, sessioni_fatte, totale_sessioni, streak)
+    return f"{SYSTEM_PROMPT_COACH_FISICO}\n\nDATI UTENTE:\n{contesto}"
 
 
 @bp.route("/")
 @login_required
 @onboarding_required
-def ask():
+def home():
     db = get_db()
     user = get_current_user()
     messaggi = db.execute(
@@ -41,7 +40,7 @@ def ask():
         (user["id"], CONTESTO),
     ).fetchall()
     return render_template(
-        "agente/ask.html", messaggi=messaggi, ai_enabled=current_app.config["AI_ENABLED"]
+        "coach/chat.html", messaggi=messaggi, ai_enabled=current_app.config["AI_ENABLED"]
     )
 
 
@@ -67,7 +66,7 @@ def messaggio():
         (user["id"], CONTESTO),
     ).fetchall()
     messaggi_claude = [{"role": r["ruolo"], "content": r["contenuto"]} for r in storico_rows]
-    system_prompt = _build_system_prompt(db)
+    system_prompt = _build_system_prompt(db, user["id"])
     api_key = current_app.config["ANTHROPIC_API_KEY"]
     db_path = current_app.config["DATABASE"]
     user_id = user["id"]
@@ -91,4 +90,4 @@ def reset():
     user = get_current_user()
     db.execute("DELETE FROM chat_messages WHERE user_id = ? AND contesto = ?", (user["id"], CONTESTO))
     db.commit()
-    return redirect(url_for("agente.ask"))
+    return redirect(url_for("coach.home"))

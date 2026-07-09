@@ -187,22 +187,29 @@ BANDI = [
         corpo="Guardia di Finanza",
         categoria="Allievi Finanzieri",
         titolo="Concorso Allievi Finanzieri 2026 (previsto)",
-        posti="Da definire",
+        posti="Da definire (edizioni recenti: 1.410 nel 2022, 1.673 nel 2023, 1.634 nel 2024, 1.985 nel 2025)",
         descrizione=(
-            "Nuovo bando per la carriera di Finanziere di truppa atteso indicativamente entro ottobre "
-            "2026, sulla base della cadenza storica delle uscite precedenti. Data e numero posti non "
-            "ancora ufficiali."
+            "Nuovo bando per la carriera di Finanziere di truppa. Le ultime quattro edizioni sono uscite "
+            "con cadenza annuale: dicembre 2022, settembre 2023, novembre 2024, ottobre 2025. Su questa "
+            "base la finestra più probabile per la prossima edizione è ottobre-novembre 2026, con margine "
+            "fino a dicembre 2026. Data e numero posti non ancora ufficiali."
         ),
         testo_indicizzato=(
-            "Concorso Allievi Finanzieri 2026 previsto stima ottobre truppa Guardia di Finanza"
+            "Concorso Allievi Finanzieri 2026 previsto stima ottobre novembre dicembre truppa Guardia di "
+            "Finanza cadenza annuale storica 2022 2023 2024 2025"
         ),
         data_pubblicazione=None,
         data_apertura=None,
         data_scadenza=None,
         stimato=1,
+        stima_periodo_da="2026-10-01",
+        stima_periodo_a="2026-12-31",
         fonte_url="https://www.gdf.gov.it/concorsi",
         fonte_tipo="Stima su base storica - nessun bando pubblicato",
-        note="STIMA non ufficiale basata su cadenza storica: nessun bando risulta ancora pubblicato.",
+        note=(
+            "STIMA non ufficiale basata sulla cadenza delle 4 edizioni precedenti (2022-2025): "
+            "nessun bando risulta ancora pubblicato per il 2026."
+        ),
     ),
 ]
 
@@ -376,13 +383,16 @@ def seed_if_empty():
     db = get_db()
     if db.execute("SELECT COUNT(*) FROM bandi").fetchone()[0] == 0:
         for b in BANDI:
+            valori = {**b, "stima_periodo_da": b.get("stima_periodo_da"), "stima_periodo_a": b.get("stima_periodo_a")}
             db.execute(
                 """INSERT INTO bandi
                 (corpo, categoria, titolo, posti, descrizione, testo_indicizzato,
-                 data_pubblicazione, data_apertura, data_scadenza, stimato, fonte_url, fonte_tipo, note)
+                 data_pubblicazione, data_apertura, data_scadenza, stimato, fonte_url, fonte_tipo, note,
+                 stima_periodo_da, stima_periodo_a)
                 VALUES (:corpo, :categoria, :titolo, :posti, :descrizione, :testo_indicizzato,
-                 :data_pubblicazione, :data_apertura, :data_scadenza, :stimato, :fonte_url, :fonte_tipo, :note)""",
-                b,
+                 :data_pubblicazione, :data_apertura, :data_scadenza, :stimato, :fonte_url, :fonte_tipo, :note,
+                 :stima_periodo_da, :stima_periodo_a)""",
+                valori,
             )
     if db.execute("SELECT COUNT(*) FROM quiz_questions").fetchone()[0] == 0:
         for q in QUIZ_QUESTIONS:

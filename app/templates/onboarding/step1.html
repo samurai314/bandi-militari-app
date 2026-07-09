@@ -37,6 +37,8 @@
       <strong>{{ b['titolo'] }}</strong><br>
       <span class="tag">{{ b['corpo'] }}</span><span class="tag">{{ b['categoria'] }}</span>
       {% if b['stimato'] %}<span class="badge badge-previsto">Previsto / stima</span>{% endif %}
+      {% set settimane = b['data_scadenza'] | settimane_rimanenti %}
+      {% if settimane %}<span class="tag">⏱️ ~{{ settimane }} settimane per prepararti</span>{% endif %}
       <p style="margin:0.5rem 0 0;font-size:0.88rem;color:#555;">{{ b['descrizione'] }}</p>
     </label>
   {% else %}

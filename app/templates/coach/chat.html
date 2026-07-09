@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros with context %}
+{% block title %}Coach fisico{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('fisico.piano') }}">← Torna al piano fisico</a></p>
+{{ macros.chat_ui(
+  messaggi,
+  url_for('coach.messaggio'),
+  url_for('coach.reset'),
+  'Coach fisico AI',
+  (
+    'Assistente AI (Claude) che conosce il tuo piano, le sessioni completate e la tua streak. '
+    'Non è un preparatore atletico reale: per dolori o dubbi medici consulta un professionista.'
+  ) if ai_enabled else (
+    'Assistente AI non configurato in questo ambiente: la chat non può rispondere finché non viene '
+    'impostata una chiave API.'
+  ),
+  ai_enabled,
+  'es. Come posso migliorare le trazioni?'
+) }}
+{% endblock %}

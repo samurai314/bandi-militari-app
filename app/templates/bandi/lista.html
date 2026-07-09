@@ -27,8 +27,13 @@
     </p>
     {% if item.giorni is not none %}
       <p style="font-size:0.9rem;">
-        {% if item.giorni >= 0 %}Scade tra <strong>{{ item.giorni }} giorni</strong> ({{ b['data_scadenza'] }}){% else %}Scaduto il {{ b['data_scadenza'] }}{% endif %}
+        {% if item.giorni >= 0 %}Scade tra <strong>{{ item.giorni }} giorni</strong> ({{ b['data_scadenza'] }})
+          {% if item.settimane_preparazione %} — circa <strong>{{ item.settimane_preparazione }} settimane</strong> per prepararti{% endif %}
+        {% else %}Scaduto il {{ b['data_scadenza'] }}{% endif %}
       </p>
+    {% elif b['stimato'] %}
+      {% set finestra = finestra_prevista(b['stima_periodo_da'], b['stima_periodo_a']) %}
+      {% if finestra %}<p style="font-size:0.9rem;">📅 Atteso tra <strong>{{ finestra }}</strong></p>{% endif %}
     {% endif %}
     <p style="font-size:0.9rem;color:#555;">{{ b['posti'] }}</p>
   </div>

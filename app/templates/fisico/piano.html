@@ -15,7 +15,33 @@
     alla tabella ufficiale del bando scelto per i requisiti minimi reali.
   </div>
   {% if bando %}<p style="font-size:0.85rem;">Bando di riferimento: <a href="{{ url_for('bandi.dettaglio', bando_id=bando['id']) }}">{{ bando['titolo'] }}</a></p>{% endif %}
+  <p><a class="btn btn-secondary" href="{{ url_for('coach.home') }}">🤖 Parla con il coach AI</a></p>
 </div>
+
+<script>
+document.addEventListener('click', function (e) {
+  var btn = e.target.closest('.video-toggle');
+  if (!btn) return;
+  var embed = btn.closest('.esercizio-card').nextElementSibling;
+  if (!embed || !embed.classList.contains('video-embed')) return;
+
+  if (embed.style.display === 'none') {
+    if (!embed.dataset.caricato) {
+      var iframe = document.createElement('iframe');
+      iframe.src = 'https://www.youtube.com/embed/' + btn.dataset.video;
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.allowFullscreen = true;
+      embed.appendChild(iframe);
+      embed.dataset.caricato = '1';
+    }
+    embed.style.display = 'block';
+    btn.textContent = '✕ Chiudi';
+  } else {
+    embed.style.display = 'none';
+    btn.textContent = '▶ Video';
+  }
+});
+</script>
 
 {% for w in piano.settimane %}
   <div class="week-block {% if w.deload %}deload{% endif %} {% if w.test_finale %}test{% endif %}" id="settimana-{{ w.numero }}">
@@ -39,9 +65,16 @@
           <p style="margin:0 0 0.5rem;"><strong>Giorno {{ loop.index }} — {{ giorno.tipo }}</strong></p>
           <div class="esercizi-grid">
             {% for e in giorno.esercizi %}
-              <div class="esercizio-card">
-                <span class="esercizio-icona">{{ e | icona | safe }}</span>
-                <span>{{ e }}</span>
+              {% set vid = e | video_esercizio %}
+              <div>
+                <div class="esercizio-card">
+                  <span class="esercizio-icona">{{ e | icona | safe }}</span>
+                  <span style="flex:1;">{{ e }}</span>
+                  {% if vid %}
+                    <button type="button" class="video-toggle" data-video="{{ vid }}">▶ Video</button>
+                  {% endif %}
+                </div>
+                {% if vid %}<div class="video-embed" style="display:none;"></div>{% endif %}
               </div>
             {% endfor %}
           </div>

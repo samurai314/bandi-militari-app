@@ -5,6 +5,14 @@
   <h2>Quiz di cultura generale</h2>
   <p style="font-size:0.85rem;">Domande originali, non tratte da raccolte già editate da terzi. Il ripasso usa
     una logica a ripetizione dilazionata: le domande sbagliate ritornano più spesso.</p>
+  <div class="disclaimer">
+    Nota di trasparenza: per i concorsi indicizzati in quest'app (Carabinieri, Guardia di Finanza,
+    Esercito/Marina/Aeronautica) gli enti organizzatori non pubblicano una banca dati ufficiale di
+    domande scaricabile liberamente — mettono a disposizione solo un simulatore riservato, accessibile
+    ai soli candidati già iscritti con un codice personale ricevuto dopo l'invio della domanda. Le
+    domande qui sotto sono quindi materiale originale scritto per quest'app, utile per ripassare gli
+    argomenti tipici, non una riproduzione di domande d'esame reali.
+  </div>
   <p>
     <a class="btn" href="{{ url_for('quiz.avvia', mode='timed') }}">⏱️ Quiz a tempo (15 domande)</a>
     <a class="btn btn-secondary" href="{{ url_for('quiz.avvia', mode='simulation') }}">🎯 Simulazione bando completa (30 domande)</a>

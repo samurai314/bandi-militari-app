@@ -1,58 +1,20 @@
 {% extends "base.html" %}
+{% import "_macros.html" as macros with context %}
 {% block title %}Chiedi sui bandi{% endblock %}
 {% block content %}
-<div class="card">
-  <h2>Chiedi sui bandi indicizzati</h2>
-  {% if ai_enabled %}
-    <div class="disclaimer">
-      Risposte generate da un assistente AI (Claude), basate solo sui testi dei bandi indicizzati
-      nell'app. Verifica comunque il bando ufficiale integrale prima di presentare domanda.
-    </div>
-  {% else %}
-    <div class="disclaimer">
-      Assistente AI non ancora configurato in questo ambiente: sto usando una ricerca per parole
-      chiave sui testi dei bandi indicizzati come alternativa. Ogni risultato riporta comunque la fonte.
-    </div>
-  {% endif %}
-  <form method="post">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="text" name="domanda" value="{{ domanda }}" placeholder="es. Quando scade il bando VFI Marina 2026?" required>
-    <button class="btn" type="submit">Chiedi</button>
-  </form>
-</div>
-
-{% if risposta_ai %}
-  <div class="card">
-    <h3>Risposta</h3>
-    <p style="white-space: pre-line;">{{ risposta_ai }}</p>
-  </div>
-{% endif %}
-
-{% if errore_ai %}
-  <div class="card">
-    <div class="disclaimer rosso">
-      L'assistente AI non ha risposto correttamente in questo momento, mostro invece i risultati
-      della ricerca per parole chiave.
-    </div>
-  </div>
-{% endif %}
-
-{% if domanda and not risposta_ai %}
-  {% if risultati %}
-    {% for b in risultati %}
-      <div class="card">
-        <h3>{{ b['titolo'] }}</h3>
-        <p><span class="tag">{{ b['corpo'] }}</span><span class="tag">{{ b['categoria'] }}</span></p>
-        <p>{{ b['descrizione'] }}</p>
-        <div class="disclaimer rosso">
-          Fonte: <a href="{{ b['fonte_url'] }}" target="_blank" rel="noopener">{{ b['fonte_url'] }}</a>
-          ({{ b['fonte_tipo'] }}{% if b['data_pubblicazione'] %}, pubblicato il {{ b['data_pubblicazione'] }}{% endif %})
-        </div>
-        <a href="{{ url_for('bandi.dettaglio', bando_id=b['id']) }}">Vedi dettaglio →</a>
-      </div>
-    {% endfor %}
-  {% else %}
-    <div class="card"><p>Nessun bando indicizzato corrisponde alla tua domanda. Prova a riformularla o consulta direttamente <a href="{{ url_for('bandi.lista') }}">l'elenco bandi</a>.</p></div>
-  {% endif %}
-{% endif %}
+{{ macros.chat_ui(
+  messaggi,
+  url_for('agente.messaggio'),
+  url_for('agente.reset'),
+  'Chiedi sui bandi',
+  (
+    'Assistente AI (Claude) basato solo sui testi dei bandi indicizzati nell\'app: cita sempre la fonte. '
+    'Verifica comunque il bando ufficiale integrale prima di presentare domanda.'
+  ) if ai_enabled else (
+    'Assistente AI non configurato in questo ambiente: la chat non può rispondere finché non viene '
+    'impostata una chiave API.'
+  ),
+  ai_enabled,
+  'es. Quando scade il bando VFI Marina 2026?'
+) }}
 {% endblock %}

@@ -92,3 +92,27 @@ def icona_per_esercizio(testo):
         if parola in testo_lower:
             return _ICONE[chiave]
     return _ICONE["mobilita"]
+
+
+# Video dimostrativi reali (YouTube), scelti per chiarezza della tecnica e
+# autorevolezza del canale. Sono contenuti di terzi incorporati via embed
+# standard, non file ospitati da questa app: se un video venisse rimosso
+# andrebbe sostituito qui.
+_VIDEO_ID = {
+    "piegamenti": "b0Xhc1aN5jQ",
+    "trazioni": "dArMGj22n44",
+    "squat": "MBgZNiN98AE",
+    "addominali": "pe24qldX2Y4",
+    "corsa_continua": "qirA0ZAFiAM",
+    "corsa_intervalli": "qirA0ZAFiAM",
+    "mobilita": "eJQMB5qfNXw",
+    "test": None,
+}
+
+
+def video_per_esercizio(testo):
+    testo_lower = (testo or "").lower()
+    for parola, chiave in _KEYWORD_MAP:
+        if parola in testo_lower:
+            return _VIDEO_ID.get(chiave)
+    return _VIDEO_ID["mobilita"]

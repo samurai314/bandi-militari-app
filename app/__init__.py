@@ -21,7 +21,7 @@ def create_app():
         from .seed_data import seed_if_empty
         seed_if_empty()
 
-    from .routes import auth, main, onboarding, bandi, quiz, fisico, colloquio, checklist, agente, impostazioni
+    from .routes import auth, main, onboarding, bandi, quiz, fisico, colloquio, checklist, agente, impostazioni, coach
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(main.bp)
@@ -33,11 +33,16 @@ def create_app():
     app.register_blueprint(checklist.bp)
     app.register_blueprint(agente.bp)
     app.register_blueprint(impostazioni.bp)
+    app.register_blueprint(coach.bp)
 
-    from .icons import icona_per_esercizio
-    from .utils import get_csrf_token
+    from .fisico_engine import settimane_rimanenti
+    from .icons import icona_per_esercizio, video_per_esercizio
+    from .utils import formatta_finestra_prevista, get_csrf_token
 
     app.jinja_env.filters["icona"] = icona_per_esercizio
+    app.jinja_env.filters["video_esercizio"] = video_per_esercizio
+    app.jinja_env.filters["settimane_rimanenti"] = settimane_rimanenti
+    app.jinja_env.globals["finestra_prevista"] = formatta_finestra_prevista
 
     @app.context_processor
     def inject_helpers():

@@ -70,6 +70,19 @@ def settimane_disponibili(data_scadenza_iso):
     return max(4, min(16, settimane)) if settimane > 0 else 4
 
 
+def settimane_rimanenti(data_scadenza_iso):
+    """Settimane reali rimanenti fino alla scadenza, senza il clamp usato per
+    generare il piano: per uso puramente informativo in UI."""
+    if not data_scadenza_iso:
+        return None
+    try:
+        scadenza = date.fromisoformat(data_scadenza_iso)
+    except ValueError:
+        return None
+    giorni = (scadenza - date.today()).days
+    return giorni // 7 if giorni > 0 else None
+
+
 STRUTTURA_GIORNI = {
     3: ["forza", "corsa", "forza_corsa"],
     4: ["forza", "corsa", "forza", "corsa_intervalli"],
