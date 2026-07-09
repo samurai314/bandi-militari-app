@@ -36,10 +36,15 @@
           </button>
         </form>
         <div style="flex:1;{% if fatto %}opacity:0.6;{% endif %}">
-          <p style="margin:0 0 0.3rem;"><strong>Giorno {{ loop.index }} — {{ giorno.tipo }}</strong></p>
-          <ul style="margin:0;">
-            {% for e in giorno.esercizi %}<li>{{ e }}</li>{% endfor %}
-          </ul>
+          <p style="margin:0 0 0.5rem;"><strong>Giorno {{ loop.index }} — {{ giorno.tipo }}</strong></p>
+          <div class="esercizi-grid">
+            {% for e in giorno.esercizi %}
+              <div class="esercizio-card">
+                <span class="esercizio-icona">{{ e | icona | safe }}</span>
+                <span>{{ e }}</span>
+              </div>
+            {% endfor %}
+          </div>
         </div>
       </div>
     {% endfor %}

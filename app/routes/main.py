@@ -3,7 +3,7 @@ from datetime import date
 from flask import Blueprint, current_app, redirect, render_template, url_for
 
 from ..db import get_db
-from ..fisico_engine import classifica_livello
+from ..fisico_engine import classifica_livello, genera_piano
 from ..quiz_engine import materia_stats
 from ..utils import BADGE_LABELS, get_current_user, login_required, onboarding_required
 
@@ -53,6 +53,13 @@ def dashboard():
         "SELECT COUNT(*) AS c FROM workout_log WHERE user_id = ?", (user["id"],)
     ).fetchone()["c"]
 
+    totale_sessioni_fisico = 0
+    if profile["piegamenti"] is not None:
+        data_scadenza = bando["data_scadenza"] if bando else None
+        piano_riepilogo = genera_piano(profile, data_scadenza)
+        totale_sessioni_fisico = sum(len(w["giorni"]) for w in piano_riepilogo["settimane"])
+    pct_fisico = round(100 * sessioni_fatte / totale_sessioni_fisico) if totale_sessioni_fisico else 0
+
     stats = materia_stats(db, user["id"])
     tentativi_totali = sum(s["tentativi"] for s in stats)
     corrette_totali = sum(s["corrette"] for s in stats)
@@ -70,6 +77,7 @@ def dashboard():
     checklist_fatti = db.execute(
         "SELECT COUNT(*) AS c FROM user_checklist WHERE user_id = ? AND checked = 1", (user["id"],)
     ).fetchone()["c"]
+    pct_checklist = round(100 * checklist_fatti / checklist_totale) if checklist_totale else 0
 
     return render_template(
         "dashboard.html",
@@ -78,7 +86,10 @@ def dashboard():
         settimana_fisico=settimana_fisico,
         livello=livello,
         sessioni_fatte=sessioni_fatte,
+        totale_sessioni_fisico=totale_sessioni_fisico,
+        pct_fisico=pct_fisico,
         pct_quiz=pct_quiz,
+        pct_checklist=pct_checklist,
         tentativi_totali=tentativi_totali,
         n_colloquio=n_colloquio,
         streak=streak,

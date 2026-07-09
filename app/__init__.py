@@ -34,7 +34,10 @@ def create_app():
     app.register_blueprint(agente.bp)
     app.register_blueprint(impostazioni.bp)
 
+    from .icons import icona_per_esercizio
     from .utils import get_csrf_token
+
+    app.jinja_env.filters["icona"] = icona_per_esercizio
 
     @app.context_processor
     def inject_helpers():

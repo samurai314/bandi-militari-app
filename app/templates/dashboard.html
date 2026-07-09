@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% import "_macros.html" as macros %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 
@@ -22,21 +23,25 @@
 </div>
 
 <div class="grid-3">
-  <div class="card">
+  <div class="card" style="text-align:center;">
     <h3>💪 Fisico</h3>
-    <p>Livello: <strong>{{ livello }}</strong></p>
-    <p>Settimana di piano: <strong>{{ settimana_fisico }}</strong></p>
-    <p>Sessioni completate: <strong>{{ sessioni_fatte }}</strong></p>
+    {{ macros.progress_ring(pct_fisico) }}
+    <p style="margin:0.6rem 0 0.2rem;font-size:0.85rem;">Livello: <strong>{{ livello }}</strong></p>
+    <p style="margin:0 0 0.8rem;font-size:0.85rem;">{{ sessioni_fatte }} / {{ totale_sessioni_fisico }} sessioni</p>
     <a class="btn btn-secondary" href="{{ url_for('fisico.piano') }}">Vedi piano</a>
   </div>
-  <div class="card">
+  <div class="card" style="text-align:center;">
     <h3>📚 Quiz</h3>
-    <p>Precisione: <strong>{{ pct_quiz }}%</strong> ({{ tentativi_totali }} risposte)</p>
+    {{ macros.progress_ring(pct_quiz) }}
+    <p style="margin:0.6rem 0 0.8rem;font-size:0.85rem;">{{ tentativi_totali }} risposte date</p>
     <a class="btn btn-secondary" href="{{ url_for('quiz.home') }}">Fai un quiz</a>
   </div>
-  <div class="card">
+  <div class="card" style="text-align:center;">
     <h3>🗣️ Colloquio</h3>
-    <p>Simulazioni fatte: <strong>{{ n_colloquio }}</strong></p>
+    <div style="height:76px;display:flex;align-items:center;justify-content:center;">
+      <span class="streak-number">{{ n_colloquio }}</span>
+    </div>
+    <p style="margin:0.6rem 0 0.8rem;font-size:0.85rem;">simulazioni fatte</p>
     <a class="btn btn-secondary" href="{{ url_for('colloquio.home') }}">Allenati</a>
   </div>
 </div>
@@ -46,26 +51,26 @@
   <div class="streak-box">
     <div>
       <div class="streak-number">{{ streak['current_streak'] if streak else 0 }}</div>
-      <div style="font-size:0.8rem;color:#777;">giorni di fila</div>
+      <div style="font-size:0.8rem;color:var(--testo-muto);">giorni di fila</div>
     </div>
     <div>
       <div class="streak-number">{{ streak['longest_streak'] if streak else 0 }}</div>
-      <div style="font-size:0.8rem;color:#777;">record personale</div>
+      <div style="font-size:0.8rem;color:var(--testo-muto);">record personale</div>
     </div>
     <div>
       {% if badge_labels %}
         {% for b in badge_labels %}<span class="tag">🏅 {{ b }}</span>{% endfor %}
       {% else %}
-        <span style="font-size:0.85rem;color:#999;">Ancora nessun badge: continua così!</span>
+        <span style="font-size:0.85rem;color:var(--testo-muto);">Ancora nessun badge: continua così!</span>
       {% endif %}
     </div>
   </div>
 </div>
 
-<div class="card">
+<div class="card" style="text-align:center;">
   <h3>📋 Checklist documenti</h3>
-  <div class="progress-bar"><div style="width:{{ (100*checklist_fatti/checklist_totale) if checklist_totale else 0 }}%"></div></div>
-  <p style="font-size:0.85rem;">{{ checklist_fatti }} / {{ checklist_totale }} completati — <a href="{{ url_for('checklist.lista') }}">vai alla checklist</a></p>
+  {{ macros.progress_ring(pct_checklist, colore='#5c8a3f') }}
+  <p style="margin:0.6rem 0 0;font-size:0.85rem;">{{ checklist_fatti }} / {{ checklist_totale }} completati — <a href="{{ url_for('checklist.lista') }}">vai alla checklist</a></p>
 </div>
 
 {% endblock %}

@@ -1,0 +1,12 @@
+{% macro progress_ring(pct, colore='#d4af37', size=76) %}
+{% set r = 30 %}
+{% set circ = 2 * 3.14159265 * r %}
+{% set offset = circ * (1 - (pct / 100)) %}
+<svg viewBox="0 0 76 76" width="{{ size }}" height="{{ size }}" class="progress-ring">
+  <circle cx="38" cy="38" r="{{ r }}" fill="none" stroke="rgba(233,230,218,0.1)" stroke-width="7"/>
+  <circle cx="38" cy="38" r="{{ r }}" fill="none" stroke="{{ colore }}" stroke-width="7"
+    stroke-linecap="round" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ offset }}"
+    transform="rotate(-90 38 38)"/>
+  <text x="38" y="43" text-anchor="middle" font-size="18" font-weight="700" fill="#f4f1e4">{{ pct }}%</text>
+</svg>
+{% endmacro %}
