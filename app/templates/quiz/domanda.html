@@ -8,6 +8,7 @@
   {% endif %}
   <h2>{{ q['domanda'] }}</h2>
   <form method="post" id="quiz-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label class="answer-option"><input type="radio" name="risposta" value="A" required style="width:auto;display:inline;"> A) {{ q['opzione_a'] }}</label>
     <label class="answer-option"><input type="radio" name="risposta" value="B" style="width:auto;display:inline;"> B) {{ q['opzione_b'] }}</label>
     <label class="answer-option"><input type="radio" name="risposta" value="C" style="width:auto;display:inline;"> C) {{ q['opzione_c'] }}</label>

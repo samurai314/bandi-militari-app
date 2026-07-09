@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Impostazioni{% endblock %}
+{% block content %}
+
+<div class="card">
+  <h2>Impostazioni</h2>
+  <p style="font-size:0.85rem;color:var(--testo-muto);">Account: {{ user['email'] }}</p>
+</div>
+
+<div class="card">
+  <h3>Bando di riferimento</h3>
+  <form method="get" style="flex-direction:row;flex-wrap:wrap;gap:0.5rem;align-items:flex-end;margin-bottom:1rem;">
+    <div style="flex:1;min-width:180px;">
+      <label>Cerca</label>
+      <input type="text" name="q" value="{{ q }}" placeholder="es. Carabinieri, VFI...">
+    </div>
+    <button class="btn btn-secondary" type="submit">Filtra</button>
+  </form>
+
+  <form method="post" action="{{ url_for('impostazioni.cambia_bando') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for b in bandi %}
+      <label class="answer-option" style="display:flex;align-items:center;gap:0.6rem;">
+        <input type="radio" name="bando_id" value="{{ b['id'] }}" style="width:auto;"
+          {% if profile['bando_id'] == b['id'] %}checked{% endif %}>
+        <span>
+          <strong>{{ b['titolo'] }}</strong>
+          {% if b['stimato'] %}<span class="badge badge-previsto">Previsto</span>{% endif %}
+        </span>
+      </label>
+    {% endfor %}
+    <button class="btn" type="submit">Aggiorna bando</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3>Situazione fisica</h3>
+  <form method="post" action="{{ url_for('impostazioni.aggiorna_fisico') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Sport praticato</label>
+    <input type="text" name="sport" value="{{ profile['sport'] or '' }}">
+
+    <label>Da quanti anni lo pratichi</label>
+    <input type="number" name="sport_anni" min="0" max="80" value="{{ profile['sport_anni'] or '' }}">
+
+    <label>Livello percepito</label>
+    <select name="livello">
+      <option value="principiante" {% if profile['livello']=='principiante' %}selected{% endif %}>Principiante</option>
+      <option value="intermedio" {% if profile['livello']=='intermedio' %}selected{% endif %}>Intermedio</option>
+      <option value="avanzato" {% if profile['livello']=='avanzato' %}selected{% endif %}>Avanzato</option>
+    </select>
+
+    <label>Piegamenti sulle braccia (massimo in una serie)</label>
+    <input type="number" name="piegamenti" min="0" max="200" value="{{ profile['piegamenti'] if profile['piegamenti'] is not none else '' }}">
+
+    <label>Trazioni alla sbarra (massimo in una serie)</label>
+    <input type="number" name="trazioni" min="0" max="100" value="{{ profile['trazioni'] if profile['trazioni'] is not none else '' }}">
+
+    <label>Distanza di corsa testata</label>
+    <select name="corsa_distanza">
+      <option value="1000" {% if profile['corsa_distanza']==1000 %}selected{% endif %}>1000 m</option>
+      <option value="2000" {% if profile['corsa_distanza']==2000 or not profile['corsa_distanza'] %}selected{% endif %}>2000 m</option>
+      <option value="3000" {% if profile['corsa_distanza']==3000 %}selected{% endif %}>3000 m</option>
+    </select>
+
+    <label>Tempo impiegato (in secondi)</label>
+    <input type="number" name="corsa_tempo_sec" min="0" max="7200" value="{{ profile['corsa_tempo_sec'] if profile['corsa_tempo_sec'] is not none else '' }}">
+
+    <label>Limitazioni fisiche pregresse</label>
+    <textarea name="limitazioni" rows="2">{{ profile['limitazioni'] or '' }}</textarea>
+
+    <button class="btn" type="submit">Aggiorna dati fisici</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3>Contesto di allenamento</h3>
+  <form method="post" action="{{ url_for('impostazioni.aggiorna_allenamento') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Contesto disponibile</label>
+    <select name="contesto">
+      <option value="corpo_libero" {% if profile['contesto']=='corpo_libero' %}selected{% endif %}>Solo corpo libero</option>
+      <option value="palestra" {% if profile['contesto']=='palestra' %}selected{% endif %}>Palestra</option>
+      <option value="entrambi" {% if profile['contesto']=='entrambi' %}selected{% endif %}>Entrambi</option>
+      <option value="esterno" {% if profile['contesto']=='esterno' %}selected{% endif %}>Spazio esterno</option>
+    </select>
+
+    <label>Giorni disponibili a settimana</label>
+    <select name="giorni_settimana">
+      {% for n in [3,4,5,6] %}
+        <option value="{{ n }}" {% if profile['giorni_settimana']==n %}selected{% endif %}>{{ n }} giorni</option>
+      {% endfor %}
+    </select>
+
+    <button class="btn" type="submit">Aggiorna allenamento</button>
+  </form>
+</div>
+
+{% endblock %}

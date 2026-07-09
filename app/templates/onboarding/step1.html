@@ -30,6 +30,7 @@
 </div>
 
 <form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   {% for b in bandi %}
     <label class="card" style="cursor:pointer;font-weight:normal;">
       <input type="radio" name="bando_id" value="{{ b['id'] }}" required style="width:auto;display:inline;">

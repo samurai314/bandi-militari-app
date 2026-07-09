@@ -221,6 +221,15 @@ textarea { resize: vertical; }
   margin-bottom: 1rem;
 }
 
+.flash-success {
+  background: var(--verde-badge-bg);
+  border-left: 3px solid var(--verde-brillante);
+  color: #c3e6ae;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
 .footer {
   text-align: center;
   font-size: 0.78rem;

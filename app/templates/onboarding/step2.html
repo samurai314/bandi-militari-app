@@ -15,6 +15,7 @@
   </div>
 
   <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label>Sport praticato (se nessuno, lascia vuoto)</label>
     <input type="text" name="sport" placeholder="es. corsa, calcio, palestra...">
 

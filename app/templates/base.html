@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Preparazione Bandi Militari{% endblock %}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <meta name="theme-color" content="#12160f">
+  <link rel="icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
   <div class="navbar">
@@ -19,6 +25,7 @@
         <a href="{{ url_for('colloquio.home') }}">Colloquio</a>
         <a href="{{ url_for('checklist.lista') }}">Checklist</a>
         <a href="{{ url_for('agente.ask') }}">Chiedi sui bandi</a>
+        <a href="{{ url_for('impostazioni.index') }}">Impostazioni</a>
         <a href="{{ url_for('auth.logout') }}">Esci</a>
       {% else %}
         <a href="{{ url_for('auth.login') }}">Accedi</a>
@@ -36,13 +43,19 @@
         toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       });
     })();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function () {});
+      });
+    }
   </script>
 
   <div class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="flash-error">{{ message }}</div>
+          <div class="flash-{{ 'success' if category == 'success' else 'error' }}">{{ message }}</div>
         {% endfor %}
       {% endif %}
     {% endwith %}

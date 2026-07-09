@@ -1,6 +1,6 @@
 from datetime import date
 
-from flask import Blueprint, redirect, render_template, url_for
+from flask import Blueprint, current_app, redirect, render_template, url_for
 
 from ..db import get_db
 from ..fisico_engine import classifica_livello
@@ -8,6 +8,11 @@ from ..quiz_engine import materia_stats
 from ..utils import BADGE_LABELS, get_current_user, login_required, onboarding_required
 
 bp = Blueprint("main", __name__)
+
+
+@bp.route("/sw.js")
+def service_worker():
+    return current_app.send_static_file("sw.js")
 
 
 @bp.route("/")
@@ -44,6 +49,10 @@ def dashboard():
 
     livello = classifica_livello(profile) if profile["piegamenti"] is not None else "n.d."
 
+    sessioni_fatte = db.execute(
+        "SELECT COUNT(*) AS c FROM workout_log WHERE user_id = ?", (user["id"],)
+    ).fetchone()["c"]
+
     stats = materia_stats(db, user["id"])
     tentativi_totali = sum(s["tentativi"] for s in stats)
     corrette_totali = sum(s["corrette"] for s in stats)
@@ -68,6 +77,7 @@ def dashboard():
         giorni_countdown=giorni_countdown,
         settimana_fisico=settimana_fisico,
         livello=livello,
+        sessioni_fatte=sessioni_fatte,
         pct_quiz=pct_quiz,
         tentativi_totali=tentativi_totali,
         n_colloquio=n_colloquio,

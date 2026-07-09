@@ -1,9 +1,16 @@
+import secrets
 from datetime import date, timedelta
 from functools import wraps
 
 from flask import g, redirect, session, url_for
 
 from .db import get_db
+
+
+def get_csrf_token():
+    if "csrf_token" not in session:
+        session["csrf_token"] = secrets.token_hex(32)
+    return session["csrf_token"]
 
 
 def get_current_user():

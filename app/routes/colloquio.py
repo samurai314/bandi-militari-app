@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, current_app, redirect, render_template, request, url_for
 
+from ..ai_assistant import ai_feedback_colloquio
 from ..colloquio_engine import DOMANDE, SEZIONI_ANSIA, analizza_risposta
 from ..db import get_db
 from ..utils import get_current_user, login_required, onboarding_required, touch_streak
@@ -31,11 +32,18 @@ def simula():
         domanda = DOMANDE[0]
 
     feedback = None
+    feedback_ai = None
     risposta = ""
     if request.method == "POST":
         risposta = request.form.get("risposta", "").strip()
         if risposta:
             feedback = analizza_risposta(risposta)
+
+            if current_app.config["AI_ENABLED"]:
+                esito = ai_feedback_colloquio(current_app.config["ANTHROPIC_API_KEY"], domanda, risposta)
+                if esito["ok"]:
+                    feedback_ai = esito["testo"]
+
             db = get_db()
             user = get_current_user()
             db.execute(
@@ -46,7 +54,8 @@ def simula():
             touch_streak(db, user["id"])
 
     return render_template(
-        "colloquio/simula.html", domanda=domanda, domande=DOMANDE, feedback=feedback, risposta=risposta
+        "colloquio/simula.html", domanda=domanda, domande=DOMANDE, feedback=feedback,
+        feedback_ai=feedback_ai, risposta=risposta, ai_enabled=current_app.config["AI_ENABLED"],
     )
 
 

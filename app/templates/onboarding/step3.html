@@ -10,6 +10,7 @@
 <div class="card">
   <h2>Dove e quanto puoi allenarti?</h2>
   <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label>Contesto di allenamento disponibile</label>
     <select name="contesto">
       <option value="corpo_libero">Solo corpo libero</option>

@@ -111,6 +111,14 @@ CREATE TABLE IF NOT EXISTS badges (
     PRIMARY KEY (user_id, codice)
 );
 
+CREATE TABLE IF NOT EXISTS workout_log (
+    user_id INTEGER NOT NULL,
+    settimana INTEGER NOT NULL,
+    giorno_indice INTEGER NOT NULL,
+    completato_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, settimana, giorno_indice)
+);
+
 CREATE TABLE IF NOT EXISTS colloquio_log (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
