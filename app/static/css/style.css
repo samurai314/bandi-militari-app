@@ -77,6 +77,43 @@ a:hover { color: #e6c65c; text-decoration: underline; }
 }
 .navbar nav a:hover { color: var(--oro); text-decoration: none; }
 
+.nav-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--bordo-forte);
+  color: var(--testo);
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 0.35rem 0.6rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.nav-toggle:hover { background: rgba(212, 175, 55, 0.1); }
+
+@media (max-width: 768px) {
+  .navbar { position: relative; }
+  .nav-toggle { display: block; }
+  .navbar nav {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: linear-gradient(180deg, #171d13, #12160f);
+    border-bottom: 2px solid var(--bordo-forte);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+    padding: 0.5rem 1.75rem 1rem;
+  }
+  .navbar nav.open { display: flex; }
+  .navbar nav a {
+    margin-right: 0;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--bordo);
+  }
+  .navbar nav a:last-child { border-bottom: none; }
+}
+
 .container {
   max-width: 960px;
   margin: 0 auto;

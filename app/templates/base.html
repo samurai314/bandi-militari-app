@@ -9,7 +9,8 @@
 <body>
   <div class="navbar">
     <div class="brand">🎖️ Preparazione Bandi Militari</div>
-    <nav>
+    <button class="nav-toggle" id="nav-toggle" aria-label="Apri menu" aria-expanded="false">☰</button>
+    <nav id="site-nav">
       {% if current_user %}
         <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
         <a href="{{ url_for('bandi.lista') }}">Bandi</a>
@@ -25,6 +26,17 @@
       {% endif %}
     </nav>
   </div>
+
+  <script>
+    (function () {
+      var toggle = document.getElementById('nav-toggle');
+      var nav = document.getElementById('site-nav');
+      toggle.addEventListener('click', function () {
+        var isOpen = nav.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+    })();
+  </script>
 
   <div class="container">
     {% with messages = get_flashed_messages(with_categories=true) %}
