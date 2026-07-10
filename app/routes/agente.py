@@ -74,7 +74,7 @@ def messaggio():
 
     def genera():
         pezzi = []
-        for pezzo in stream_chat(api_key, system_prompt, messaggi_claude):
+        for pezzo in stream_chat(api_key, system_prompt, messaggi_claude, abilita_ricerca_web=True):
             pezzi.append(pezzo)
             yield pezzo
         risposta_completa = "".join(pezzi)

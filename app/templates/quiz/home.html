@@ -2,28 +2,49 @@
 {% block title %}Quiz{% endblock %}
 {% block content %}
 <div class="card">
-  <h2>Quiz di cultura generale</h2>
+  <h2>Quiz di preparazione</h2>
   <p style="font-size:0.85rem;">Domande originali, non tratte da raccolte già editate da terzi. Il ripasso usa
     una logica a ripetizione dilazionata: le domande sbagliate ritornano più spesso.</p>
   <div class="disclaimer">
     Nota di trasparenza: per i concorsi indicizzati in quest'app (Carabinieri, Guardia di Finanza,
     Esercito/Marina/Aeronautica) gli enti organizzatori non pubblicano una banca dati ufficiale di
     domande scaricabile liberamente — mettono a disposizione solo un simulatore riservato, accessibile
-    ai soli candidati già iscritti con un codice personale ricevuto dopo l'invio della domanda. Le
-    domande qui sotto sono quindi materiale originale scritto per quest'app, utile per ripassare gli
-    argomenti tipici, non una riproduzione di domande d'esame reali.
+    ai soli candidati già iscritti. Le domande qui sotto sono quindi materiale originale scritto per
+    quest'app (per le materie specifiche del tuo corpo, allineato alle materie effettivamente indicate
+    nei bandi), utile per ripassare gli argomenti tipici, non una riproduzione di domande d'esame reali.
   </div>
   <p>
-    <a class="btn" href="{{ url_for('quiz.avvia', mode='timed') }}">⏱️ Quiz a tempo (15 domande)</a>
+    <a class="btn" href="{{ url_for('quiz.avvia', mode='prova') }}">✅ Quiz prova (correzione immediata)</a>
+    <a class="btn btn-secondary" href="{{ url_for('quiz.avvia', mode='timed') }}">⏱️ Quiz a tempo (15 domande)</a>
     <a class="btn btn-secondary" href="{{ url_for('quiz.avvia', mode='simulation') }}">🎯 Simulazione bando completa (30 domande)</a>
     <a class="btn btn-outline" href="{{ url_for('quiz.statistiche') }}">📊 Statistiche</a>
   </p>
+  {% if n_errori > 0 %}
+    <p><a class="btn" style="background:var(--rosso);" href="{{ url_for('quiz.avvia', mode='errori') }}">🔁 Ripassa i tuoi errori ({{ n_errori }})</a></p>
+  {% endif %}
 </div>
 
+{% if stats_specifiche %}
 <div class="card">
-  <h3>Ripasso per materia</h3>
+  <h3>Materie specifiche per il tuo bando</h3>
   <div class="grid-3">
-    {% for s in stats %}
+    {% for s in stats_specifiche %}
+      <div class="card" style="margin-bottom:0;">
+        <h4 style="margin:0 0 0.4rem;">{{ s.materia }}</h4>
+        <p style="font-size:0.85rem;">
+          {% if s.percentuale is not none %}Precisione: {{ s.percentuale }}% su {{ s.tentativi }} risposte{% else %}Non ancora iniziato{% endif %}
+        </p>
+        <a class="btn btn-secondary" href="{{ url_for('quiz.avvia', mode='practice', materia=s.materia) }}">Ripassa</a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h3>Cultura generale (tutti i bandi)</h3>
+  <div class="grid-3">
+    {% for s in stats_generiche %}
       <div class="card" style="margin-bottom:0;">
         <h4 style="margin:0 0 0.4rem;">{{ s.materia }}</h4>
         <p style="font-size:0.85rem;">

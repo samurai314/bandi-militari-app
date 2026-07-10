@@ -1,15 +1,33 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from flask import Blueprint, redirect, render_template, request, session, url_for
 
 from ..db import get_db
-from ..quiz_engine import materia_stats, pick_questions, review
+from ..quiz_engine import conta_errori, corpo_specifico_per_bando, materia_stats, pick_questions, review
 from ..utils import check_quiz_badges, get_current_user, login_required, onboarding_required, touch_streak
 
 bp = Blueprint("quiz", __name__, url_prefix="/quiz")
 
-MODE_LIMITS = {"practice": 10, "timed": 15, "simulation": 30}
-MODE_SECONDS_PER_Q = {"practice": None, "timed": 45, "simulation": 60}
+MODE_LIMITS = {"practice": 10, "prova": 10, "timed": 15, "simulation": 30, "errori": 20}
+MODE_SECONDS_PER_Q = {"practice": None, "prova": None, "timed": 45, "simulation": 60, "errori": None}
+
+
+def _corpo_tag_utente(db, user_id):
+    profile = db.execute("SELECT * FROM profiles WHERE user_id = ?", (user_id,)).fetchone()
+    if not profile or not profile["bando_id"]:
+        return None
+    bando = db.execute("SELECT * FROM bandi WHERE id = ?", (profile["bando_id"],)).fetchone()
+    return corpo_specifico_per_bando(bando["corpo"]) if bando else None
+
+
+def _termina_sessione(db, user, state):
+    db.execute(
+        "INSERT INTO quiz_sessions_log (user_id, mode, materia, total, correct, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+        (user["id"], state["mode"], state["materia"], len(state["question_ids"]), state["corrette"], datetime.utcnow().isoformat()),
+    )
+    db.commit()
+    touch_streak(db, user["id"])
+    check_quiz_badges(db, user["id"])
 
 
 @bp.route("/")
@@ -18,9 +36,14 @@ MODE_SECONDS_PER_Q = {"practice": None, "timed": 45, "simulation": 60}
 def home():
     db = get_db()
     user = get_current_user()
-    stats = materia_stats(db, user["id"])
-    materie = [s["materia"] for s in stats]
-    return render_template("quiz/home.html", stats=stats, materie=materie)
+    corpo_tag = _corpo_tag_utente(db, user["id"])
+    stats_generiche = materia_stats(db, user["id"])
+    stats_specifiche = materia_stats(db, user["id"], corpo_specifico=corpo_tag) if corpo_tag else []
+    n_errori = conta_errori(db, user["id"])
+    return render_template(
+        "quiz/home.html", stats_generiche=stats_generiche, stats_specifiche=stats_specifiche,
+        corpo_tag=corpo_tag, n_errori=n_errori,
+    )
 
 
 @bp.route("/avvia")
@@ -45,6 +68,8 @@ def avvia():
         corrette=0,
         risposte=[],
         secondi_per_domanda=MODE_SECONDS_PER_Q.get(mode),
+        in_attesa_conferma=False,
+        ultimo_feedback=None,
     )
     return redirect(url_for("quiz.domanda"))
 
@@ -98,17 +123,21 @@ def domanda():
             question_id=question_id, corretto=corretto, risposta_data=risposta_data,
             risposta_giusta=q["risposta"], spiegazione=q["spiegazione"], domanda=q["domanda"],
         ))
+
+        if state["mode"] == "prova":
+            state["in_attesa_conferma"] = True
+            state["ultimo_feedback"] = dict(
+                corretto=corretto, risposta_data=risposta_data,
+                risposta_giusta=q["risposta"], spiegazione=q["spiegazione"],
+            )
+            session["quiz_state"] = state
+            return redirect(url_for("quiz.domanda"))
+
         state["index"] += 1
         session["quiz_state"] = state
 
         if state["index"] >= len(state["question_ids"]):
-            db.execute(
-                "INSERT INTO quiz_sessions_log (user_id, mode, materia, total, correct, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
-                (user["id"], state["mode"], state["materia"], len(state["question_ids"]), state["corrette"], datetime.utcnow().isoformat()),
-            )
-            db.commit()
-            touch_streak(db, user["id"])
-            check_quiz_badges(db, user["id"])
+            _termina_sessione(db, user, state)
             return redirect(url_for("quiz.risultati"))
 
         return redirect(url_for("quiz.domanda"))
@@ -119,7 +148,32 @@ def domanda():
         "quiz/domanda.html", q=q,
         numero=state["index"] + 1, totale=len(state["question_ids"]),
         secondi=state["secondi_per_domanda"], mode=state["mode"],
+        in_attesa_conferma=state.get("in_attesa_conferma", False),
+        ultimo_feedback=state.get("ultimo_feedback"),
     )
+
+
+@bp.route("/avanti", methods=("POST",))
+@login_required
+@onboarding_required
+def avanti():
+    state = session.get("quiz_state")
+    if not state:
+        return redirect(url_for("quiz.home"))
+
+    db = get_db()
+    user = get_current_user()
+
+    state["in_attesa_conferma"] = False
+    state["ultimo_feedback"] = None
+    state["index"] += 1
+    session["quiz_state"] = state
+
+    if state["index"] >= len(state["question_ids"]):
+        _termina_sessione(db, user, state)
+        return redirect(url_for("quiz.risultati"))
+
+    return redirect(url_for("quiz.domanda"))
 
 
 @bp.route("/risultati")
@@ -138,7 +192,9 @@ def risultati():
 def statistiche():
     db = get_db()
     user = get_current_user()
-    stats = materia_stats(db, user["id"])
+    corpo_tag = _corpo_tag_utente(db, user["id"])
+    stats_generiche = materia_stats(db, user["id"])
+    stats_specifiche = materia_stats(db, user["id"], corpo_specifico=corpo_tag) if corpo_tag else []
 
     domande_deboli = db.execute(
         """SELECT q.domanda, q.materia, p.correct_count, p.attempts, p.next_review
@@ -149,4 +205,30 @@ def statistiche():
         (user["id"],),
     ).fetchall()
 
-    return render_template("quiz/statistiche.html", stats=stats, domande_deboli=domande_deboli)
+    n_errori = conta_errori(db, user["id"])
+
+    classifica = []
+    profile = db.execute("SELECT bando_id FROM profiles WHERE user_id = ?", (user["id"],)).fetchone()
+    if profile and profile["bando_id"]:
+        una_settimana_fa = (datetime.utcnow() - timedelta(days=7)).isoformat()
+        righe = db.execute(
+            """SELECT qsl.user_id, SUM(qsl.correct) AS punteggio
+               FROM quiz_sessions_log qsl
+               JOIN profiles pr ON pr.user_id = qsl.user_id
+               WHERE pr.bando_id = ? AND qsl.timestamp >= ?
+               GROUP BY qsl.user_id
+               ORDER BY punteggio DESC
+               LIMIT 10""",
+            (profile["bando_id"], una_settimana_fa),
+        ).fetchall()
+        for i, r in enumerate(righe, start=1):
+            sei_tu = (r["user_id"] == user["id"])
+            classifica.append(dict(
+                posizione=i, punteggio=r["punteggio"],
+                etichetta="Tu" if sei_tu else f"Candidato #{i}", sei_tu=sei_tu,
+            ))
+
+    return render_template(
+        "quiz/statistiche.html", stats_generiche=stats_generiche, stats_specifiche=stats_specifiche,
+        domande_deboli=domande_deboli, n_errori=n_errori, classifica=classifica,
+    )

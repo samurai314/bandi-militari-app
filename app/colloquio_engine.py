@@ -1,27 +1,9 @@
-"""Feedback euristico (regole, non AI generativa) per le risposte motivazionali.
+"""Contenuti informativi statici per il Modulo 3 (colloquio).
 
-Deliberatamente NON assegna punteggi numerici: fornisce solo osservazioni
-qualitative su struttura e chiarezza, come indicato nel disclaimer del
-Modulo 3 (non è un test psicologico, non sostituisce lo psicologo militare).
+Il feedback sulle risposte del colloquio è ora generato dall'AI in una
+conversazione reale (vedi app/ai_assistant.py e app/routes/colloquio.py),
+non più da regole euristiche locali.
 """
-
-CLICHE = [
-    "fin da piccolo", "fin da bambino", "amo la patria", "servire il mio paese",
-    "sempre stato il mio sogno", "onore e disciplina", "sono nato per questo",
-]
-
-PAROLE_CONCRETEZZA = [
-    "quando", "esperienza", "ho fatto", "ho svolto", "durante", "esempio",
-    "in particolare", "mesi", "anni", "allenamento", "corso", "lavoro", "progetto",
-]
-
-DOMANDE = [
-    "Perché vuoi entrare nelle Forze Armate / nell'Arma dei Carabinieri?",
-    "Racconta un episodio in cui hai dovuto rispettare una regola che non condividevi.",
-    "Come reagisci sotto pressione o in una situazione di stress improvviso?",
-    "Descrivi un'esperienza di lavoro in squadra e il tuo ruolo in quel contesto.",
-    "Quali pensi siano i tuoi punti di forza e i tuoi limiti rispetto alla vita militare?",
-]
 
 # Contenuti informativi generali sulla gestione dell'ansia da colloquio: solo
 # indicazioni pratiche di preparazione, non consigli terapeutici. Il rimando
@@ -70,37 +52,3 @@ SEZIONI_ANSIA = [
         ],
     ),
 ]
-
-
-def analizza_risposta(testo):
-    testo_lower = testo.lower()
-    parole = testo.split()
-    n_parole = len(parole)
-
-    osservazioni = []
-
-    if n_parole < 20:
-        osservazioni.append("La risposta è molto breve: prova ad ampliarla con un esempio concreto.")
-    elif n_parole > 180:
-        osservazioni.append("La risposta è piuttosto lunga: in un colloquio reale punta a essere più sintetico e diretto.")
-    else:
-        osservazioni.append("La lunghezza della risposta è adeguata a un colloquio orale.")
-
-    cliche_trovati = [c for c in CLICHE if c in testo_lower]
-    if cliche_trovati:
-        osservazioni.append(
-            "Contiene frasi molto generiche/di circostanza (" + ", ".join(cliche_trovati) + "): "
-            "prova a sostituirle con qualcosa di personale e verificabile."
-        )
-
-    ha_concretezza = any(p in testo_lower for p in PAROLE_CONCRETEZZA)
-    if ha_concretezza:
-        osservazioni.append("Bene: la risposta include riferimenti a esperienze o momenti concreti.")
-    else:
-        osservazioni.append("Manca un riferimento a un'esperienza concreta o a un episodio specifico: aggiungine uno.")
-
-    usa_prima_persona = any(p in testo_lower.split() for p in ["io", "mi", "ho", "sono"])
-    if not usa_prima_persona:
-        osservazioni.append("Prova a parlare più in prima persona, di te stesso e delle tue esperienze dirette.")
-
-    return dict(n_parole=n_parole, osservazioni=osservazioni, cliche_trovati=cliche_trovati)

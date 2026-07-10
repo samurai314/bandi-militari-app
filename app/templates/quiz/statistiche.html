@@ -1,11 +1,52 @@
 {% extends "base.html" %}
 {% block title %}Statistiche quiz{% endblock %}
 {% block content %}
+
+{% if classifica %}
 <div class="card">
-  <h2>Statistiche per materia</h2>
+  <h2>🏆 Classifica settimanale (candidati per il tuo stesso bando)</h2>
+  <p style="font-size:0.85rem;color:var(--testo-muto);">Basata sulle risposte corrette negli ultimi 7 giorni, in forma anonima.</p>
+  <table>
+    <tr><th>#</th><th>Candidato</th><th>Punteggio</th></tr>
+    {% for c in classifica %}
+      <tr {% if c.sei_tu %}style="font-weight:700;"{% endif %}>
+        <td>{{ c.posizione }}</td>
+        <td>{{ c.etichetta }}</td>
+        <td>{{ c.punteggio }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% if n_errori > 0 %}
+<div class="card" style="text-align:center;">
+  <a class="btn" style="background:var(--rosso);" href="{{ url_for('quiz.avvia', mode='errori') }}">🔁 Ripassa i tuoi errori ({{ n_errori }})</a>
+</div>
+{% endif %}
+
+{% if stats_specifiche %}
+<div class="card">
+  <h2>Materie specifiche per il tuo bando</h2>
   <table>
     <tr><th>Materia</th><th>Domande totali</th><th>Risposte date</th><th>Precisione</th></tr>
-    {% for s in stats %}
+    {% for s in stats_specifiche %}
+      <tr>
+        <td>{{ s.materia }}</td>
+        <td>{{ s.totale }}</td>
+        <td>{{ s.tentativi }}</td>
+        <td>{% if s.percentuale is not none %}{{ s.percentuale }}%{% else %}—{% endif %}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>Cultura generale</h2>
+  <table>
+    <tr><th>Materia</th><th>Domande totali</th><th>Risposte date</th><th>Precisione</th></tr>
+    {% for s in stats_generiche %}
       <tr>
         <td>{{ s.materia }}</td>
         <td>{{ s.totale }}</td>

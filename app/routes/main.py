@@ -60,7 +60,7 @@ def dashboard():
         totale_sessioni_fisico = sum(len(w["giorni"]) for w in piano_riepilogo["settimane"])
     pct_fisico = round(100 * sessioni_fatte / totale_sessioni_fisico) if totale_sessioni_fisico else 0
 
-    stats = materia_stats(db, user["id"])
+    stats = materia_stats(db, user["id"], corpo_specifico=None)
     tentativi_totali = sum(s["tentativi"] for s in stats)
     corrette_totali = sum(s["corrette"] for s in stats)
     pct_quiz = round(100 * corrette_totali / tentativi_totali) if tentativi_totali else 0
@@ -70,6 +70,7 @@ def dashboard():
     ).fetchone()["c"]
 
     streak = db.execute("SELECT * FROM streaks WHERE user_id = ?", (user["id"],)).fetchone()
+    attivo_oggi = bool(streak and streak["last_activity_date"] == date.today().isoformat())
     badges = db.execute("SELECT * FROM badges WHERE user_id = ?", (user["id"],)).fetchall()
     badge_labels = [BADGE_LABELS.get(b["codice"], b["codice"]) for b in badges]
 
@@ -93,6 +94,7 @@ def dashboard():
         tentativi_totali=tentativi_totali,
         n_colloquio=n_colloquio,
         streak=streak,
+        attivo_oggi=attivo_oggi,
         badge_labels=badge_labels,
         checklist_totale=checklist_totale,
         checklist_fatti=checklist_fatti,

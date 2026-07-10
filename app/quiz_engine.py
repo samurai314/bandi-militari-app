@@ -2,6 +2,27 @@
 
 from datetime import date, timedelta
 
+# Mappa parole chiave del campo bandi.corpo -> valore quiz_questions.corpo_specifico.
+# Match per sottostringa (case-insensitive): un bando può menzionare più Forze Armate.
+_MAPPA_CORPO = [
+    ("carabinieri", "Carabinieri"),
+    ("guardia di finanza", "Guardia di Finanza"),
+    ("esercito", "Esercito/Marina/Aeronautica"),
+    ("marina", "Esercito/Marina/Aeronautica"),
+    ("aeronautica", "Esercito/Marina/Aeronautica"),
+    ("interforze", "Esercito/Marina/Aeronautica"),
+]
+
+
+def corpo_specifico_per_bando(corpo_bando):
+    if not corpo_bando:
+        return None
+    corpo_lower = corpo_bando.lower()
+    for parola, tag in _MAPPA_CORPO:
+        if parola in corpo_lower:
+            return tag
+    return None
+
 
 def review(repetitions, interval_days, ease_factor, correct):
     """Calcola il nuovo stato di ripetizione dopo una risposta.
@@ -33,13 +54,26 @@ def review(repetitions, interval_days, ease_factor, correct):
 def pick_questions(db, user_id, materia=None, limit=10, mode="practice"):
     """Sceglie le domande per una sessione.
 
-    - practice: priorità alle domande in scadenza di ripasso (spaced repetition),
+    - practice/prova: priorità alle domande in scadenza di ripasso (spaced repetition),
       poi alle domande mai fatte, filtrate per materia se indicata.
     - timed/simulation: selezione ampia e mescolata tra le materie.
+    - errori: solo le domande in cui l'ultimo tentativo dell'utente è stato sbagliato.
     """
     today = date.today().isoformat()
 
-    if mode == "practice":
+    if mode == "errori":
+        materia_filter = "AND q.materia = ?" if materia else ""
+        params = [user_id] + ([materia] if materia else [])
+        return db.execute(
+            f"""SELECT q.* FROM quiz_questions q
+                JOIN quiz_progress p ON p.question_id = q.id AND p.user_id = ?
+                WHERE p.last_result = 0 {materia_filter}
+                ORDER BY p.next_review ASC
+                LIMIT {int(limit)}""",
+            params,
+        ).fetchall()
+
+    if mode in ("practice", "prova"):
         materia_filter = "AND q.materia = ?" if materia else ""
 
         due = db.execute(
@@ -68,17 +102,34 @@ def pick_questions(db, user_id, materia=None, limit=10, mode="practice"):
     ).fetchall()
 
 
-def materia_stats(db, user_id):
+def materia_stats(db, user_id, corpo_specifico="__generiche__"):
+    """Statistiche per materia.
+
+    corpo_specifico:
+    - "__generiche__" (default): solo le materie generiche (corpo_specifico IS NULL)
+    - un valore di corpo_specifico (es. "Carabinieri"): solo le materie di quel corpo
+    - None: tutte le materie, senza distinzione
+    """
+    if corpo_specifico == "__generiche__":
+        filtro = "WHERE q.corpo_specifico IS NULL"
+        params = (user_id,)
+    elif corpo_specifico is None:
+        filtro = ""
+        params = (user_id,)
+    else:
+        filtro = "WHERE q.corpo_specifico = ?"
+        params = (user_id, corpo_specifico)
+
     rows = db.execute(
-        """SELECT q.materia,
+        f"""SELECT q.materia,
                   COUNT(*) AS totale,
-                  SUM(CASE WHEN p.correct_count > 0 THEN 1 ELSE 0 END) AS con_almeno_una_corretta,
                   COALESCE(SUM(p.attempts), 0) AS tentativi,
                   COALESCE(SUM(p.correct_count), 0) AS corrette
            FROM quiz_questions q
            LEFT JOIN quiz_progress p ON p.question_id = q.id AND p.user_id = ?
+           {filtro}
            GROUP BY q.materia""",
-        (user_id,),
+        params,
     ).fetchall()
     stats = []
     for r in rows:
@@ -90,3 +141,9 @@ def materia_stats(db, user_id):
                  corrette=corrette, percentuale=pct)
         )
     return stats
+
+
+def conta_errori(db, user_id):
+    return db.execute(
+        "SELECT COUNT(*) AS c FROM quiz_progress WHERE user_id = ? AND last_result = 0", (user_id,)
+    ).fetchone()["c"]

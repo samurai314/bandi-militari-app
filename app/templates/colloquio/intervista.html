@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros with context %}
+{% block title %}Colloquio{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="disclaimer rosso" style="margin:0;">
+    Questa è una simulazione: non è un test psicologico e non sostituisce in alcun modo la selezione
+    psicoattitudinale reale né lo psicologo militare. La valutazione finale riguarda solo chiarezza e
+    struttura delle risposte, mai un giudizio clinico o psicologico sulla persona.
+  </div>
+  <p style="margin:0.8rem 0 0;"><a class="btn btn-outline" href="{{ url_for('colloquio.ansia') }}">🧘 Gestione dell'ansia da colloquio</a></p>
+</div>
+
+{{ macros.chat_ui(
+  messaggi,
+  url_for('colloquio.messaggio'),
+  url_for('colloquio.reset'),
+  'Simulazione colloquio',
+  (
+    'Assistente AI (Claude) che conduce un colloquio motivazionale simulato: fa una domanda alla volta '
+    'come farebbe un vero selezionatore. Quando vuoi, chiedi la valutazione finale col pulsante qui sotto.'
+  ) if ai_enabled else (
+    'Assistente AI non configurato in questo ambiente: la chat non può rispondere finché non viene '
+    'impostata una chiave API.'
+  ),
+  ai_enabled,
+  'Scrivi la tua risposta...'
+) }}
+
+{% if ai_enabled %}
+<div class="card" style="text-align:center;">
+  <button type="button" class="btn" id="termina-colloquio">🏁 Termina e ricevi la valutazione</button>
+</div>
+<script>
+(function () {
+  var bottone = document.getElementById('termina-colloquio');
+  var input = document.getElementById('chat-input');
+  var form = document.getElementById('chat-form');
+  bottone.addEventListener('click', function () {
+    input.value = 'Per favore concludi il colloquio e dammi una valutazione dettagliata di ogni mia risposta.';
+    form.requestSubmit();
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

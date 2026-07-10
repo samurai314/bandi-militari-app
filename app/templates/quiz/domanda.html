@@ -2,19 +2,45 @@
 {% block title %}Quiz - Domanda {{ numero }}{% endblock %}
 {% block content %}
 <div class="card">
-  <p style="font-size:0.85rem;color:#777;">Domanda {{ numero }} di {{ totale }} — modalità: {{ mode }}</p>
+  <p style="font-size:0.85rem;color:var(--testo-muto);">Domanda {{ numero }} di {{ totale }} — modalità: {{ mode }}</p>
   {% if secondi %}
     <p class="quiz-timer" id="timer">Tempo rimanente: {{ secondi }}s</p>
   {% endif %}
   <h2>{{ q['domanda'] }}</h2>
-  <form method="post" id="quiz-form">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label class="answer-option"><input type="radio" name="risposta" value="A" required style="width:auto;display:inline;"> A) {{ q['opzione_a'] }}</label>
-    <label class="answer-option"><input type="radio" name="risposta" value="B" style="width:auto;display:inline;"> B) {{ q['opzione_b'] }}</label>
-    <label class="answer-option"><input type="radio" name="risposta" value="C" style="width:auto;display:inline;"> C) {{ q['opzione_c'] }}</label>
-    <label class="answer-option"><input type="radio" name="risposta" value="D" style="width:auto;display:inline;"> D) {{ q['opzione_d'] }}</label>
-    <button class="btn" type="submit">Rispondi</button>
-  </form>
+
+  {% if in_attesa_conferma and ultimo_feedback %}
+    <div class="answer-option" style="border-color: {{ 'var(--verde-brillante)' if ultimo_feedback.corretto else 'var(--rosso)' }};">
+      A) {{ q['opzione_a'] }} {% if ultimo_feedback.risposta_giusta == 'A' %}✅{% elif ultimo_feedback.risposta_data == 'A' %}❌{% endif %}
+    </div>
+    <div class="answer-option" style="border-color: {{ 'var(--verde-brillante)' if ultimo_feedback.corretto else 'var(--rosso)' }};">
+      B) {{ q['opzione_b'] }} {% if ultimo_feedback.risposta_giusta == 'B' %}✅{% elif ultimo_feedback.risposta_data == 'B' %}❌{% endif %}
+    </div>
+    <div class="answer-option" style="border-color: {{ 'var(--verde-brillante)' if ultimo_feedback.corretto else 'var(--rosso)' }};">
+      C) {{ q['opzione_c'] }} {% if ultimo_feedback.risposta_giusta == 'C' %}✅{% elif ultimo_feedback.risposta_data == 'C' %}❌{% endif %}
+    </div>
+    <div class="answer-option" style="border-color: {{ 'var(--verde-brillante)' if ultimo_feedback.corretto else 'var(--rosso)' }};">
+      D) {{ q['opzione_d'] }} {% if ultimo_feedback.risposta_giusta == 'D' %}✅{% elif ultimo_feedback.risposta_data == 'D' %}❌{% endif %}
+    </div>
+
+    <div class="disclaimer {{ '' if ultimo_feedback.corretto else 'rosso' }}">
+      {% if ultimo_feedback.corretto %}✅ Corretto!{% else %}❌ Sbagliato — la risposta giusta era {{ ultimo_feedback.risposta_giusta }}.{% endif %}
+      {% if ultimo_feedback.spiegazione %}<br>{{ ultimo_feedback.spiegazione }}{% endif %}
+    </div>
+
+    <form method="post" action="{{ url_for('quiz.avanti') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn" type="submit">Prossima domanda →</button>
+    </form>
+  {% else %}
+    <form method="post" id="quiz-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <label class="answer-option"><input type="radio" name="risposta" value="A" required style="width:auto;display:inline;"> A) {{ q['opzione_a'] }}</label>
+      <label class="answer-option"><input type="radio" name="risposta" value="B" style="width:auto;display:inline;"> B) {{ q['opzione_b'] }}</label>
+      <label class="answer-option"><input type="radio" name="risposta" value="C" style="width:auto;display:inline;"> C) {{ q['opzione_c'] }}</label>
+      <label class="answer-option"><input type="radio" name="risposta" value="D" style="width:auto;display:inline;"> D) {{ q['opzione_d'] }}</label>
+      <button class="btn" type="submit">Rispondi</button>
+    </form>
+  {% endif %}
 </div>
 
 {% if secondi %}

@@ -145,6 +145,7 @@ MIGRAZIONI = [
     "ALTER TABLE bandi ADD COLUMN stima_periodo_da TEXT",
     "ALTER TABLE bandi ADD COLUMN stima_periodo_a TEXT",
     "ALTER TABLE quiz_questions ADD COLUMN fonte TEXT DEFAULT 'originale'",
+    "ALTER TABLE quiz_questions ADD COLUMN corpo_specifico TEXT",
 ]
 
 

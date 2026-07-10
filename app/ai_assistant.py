@@ -1,42 +1,40 @@
-"""Integrazione reale con Claude (Anthropic) per l'agente bandi e il feedback colloquio.
+"""Integrazione reale con Claude (Anthropic): chat streaming multi-turno per
+bandi, coach fisico e colloquio.
 
 Il corpus dei bandi è piccolo (poche decine di voci), quindi invece di un
 retrieval per embedding passiamo l'intero corpus indicizzato come contesto:
 è un RAG "a corpus intero", non serve altro finché il database resta di
-queste dimensioni. Se il DB crescesse molto andrebbe introdotta una vera
-ricerca vettoriale prima di questo passaggio.
+queste dimensioni.
 
-Ogni chiamata è difensiva: se la chiave manca o l'API fallisce, ritorna
-ok=False e il chiamante ricade sul comportamento non-AI già esistente.
+Per i bandi non indicizzati (o per domande generali sulla vita militare)
+l'assistente usa il tool di ricerca web nativo di Claude — eseguito lato
+server da Anthropic stessa, non dal nostro backend, quindi non soggetto a
+eventuali restrizioni di rete dell'hosting.
 """
 
 import anthropic
 
 MODEL = "claude-haiku-4-5-20251001"
 
-SYSTEM_PROMPT_BANDI = """Sei l'assistente informativo di un'app di preparazione ai concorsi militari italiani.
-Rispondi SOLO usando i testi dei bandi forniti nel contesto qui sotto: non usare conoscenza generale
-o esterna su bandi militari, anche se la conosci. Se l'informazione richiesta non è presente nel
-contesto fornito, dillo esplicitamente e invita l'utente a verificare sul bando ufficiale o sulla
-Gazzetta Ufficiale: non inventare mai date, requisiti o numeri di posti.
-Quando rispondi, cita sempre il titolo del bando e la fonte. Rispondi in italiano, in modo conciso
-(massimo 120-150 parole), senza markdown pesante (evita intestazioni, usa al massimo elenchi puntati semplici)."""
-
-SYSTEM_PROMPT_COLLOQUIO = """Sei un assistente che aiuta candidati a concorsi militari italiani a esercitarsi
-con domande motivazionali in vista del colloquio/selezione psicoattitudinale.
-Dai SOLO feedback qualitativo su chiarezza, struttura e concretezza della risposta (es. se è troppo
-generica, se manca un esempio concreto, se la lunghezza è adeguata a un colloquio orale).
-Non assegnare mai un punteggio numerico, non fare alcuna valutazione psicologica o clinica della
-persona, non dire se "supererebbe" o meno una selezione reale: quella è condotta da professionisti
-con strumenti diversi. Rispondi in italiano, in 3-5 punti elenco brevi, tono diretto e costruttivo."""
+WEB_SEARCH_TOOL = {"type": "web_search_20250305", "name": "web_search", "max_uses": 3}
 
 SYSTEM_PROMPT_BANDI_CHAT = """Sei l'assistente conversazionale di un'app di preparazione ai concorsi militari
-italiani. Rispondi SOLO usando i testi dei bandi forniti nel contesto qui sotto: non usare conoscenza
-generale o esterna, anche se la conosci. Se l'informazione richiesta non è nel contesto, dillo
-esplicitamente e invita a verificare sul bando ufficiale o sulla Gazzetta Ufficiale: non inventare mai
-date, requisiti o numeri di posti. Cita sempre il titolo del bando e la fonte quando rispondi con un
-dato preciso. Questa è una conversazione a più turni: puoi fare riferimento a quanto detto prima.
-Rispondi in italiano, in modo naturale e colloquiale ma preciso, senza markdown pesante."""
+italiani. Per fatti concreti su un bando (date, requisiti, numero di posti) usa PRIMA i testi dei bandi
+indicizzati forniti nel contesto qui sotto, e cita sempre il titolo del bando e la fonte quando rispondi
+con un dato preciso preso da lì: non inventare mai date, requisiti o numeri di posti.
+
+Se ti viene chiesto di un bando che NON è nel contesto fornito, usa lo strumento di ricerca web per
+cercarlo: quando lo fai, cita sempre la fonte trovata (nome del sito e se possibile l'URL) e ricorda
+comunque all'utente di verificare il testo integrale sul sito ufficiale o sulla Gazzetta Ufficiale prima
+di presentare domanda.
+
+Per domande generali sulla vita militare, la carriera, o su come funzionano le prove di selezione in
+generale (non un dato specifico di un bando) puoi rispondere anche con conoscenza generale o cercando
+sul web se utile, ma dichiara sempre chiaramente che è un'informazione generale/indicativa, non una
+garanzia ufficiale.
+
+Questa è una conversazione a più turni: puoi fare riferimento a quanto detto prima. Rispondi in italiano,
+in modo naturale e colloquiale ma preciso, senza markdown pesante."""
 
 SYSTEM_PROMPT_COACH_FISICO = """Sei il coach virtuale del piano fisico di un'app di preparazione ai concorsi
 militari italiani. Conosci il piano di allenamento dell'utente, le sessioni che ha completato, la sua
@@ -46,46 +44,29 @@ Non sei un preparatore atletico o un medico reale: se l'utente segnala dolore, i
 medici, invitalo sempre a consultare un professionista invece di dare indicazioni cliniche.
 Rispondi in italiano, tono diretto e incoraggiante, conversazionale (questa è una chat a più turni)."""
 
+SYSTEM_PROMPT_COLLOQUIO_CHAT = """Sei un intervistatore che simula, in modo realistico, un colloquio
+motivazionale per un concorso militare italiano (non la selezione psicoattitudinale ufficiale, che è
+condotta da professionisti con strumenti diversi).
 
-def _build_bandi_context(bandi_rows):
-    blocchi = []
-    for b in bandi_rows:
-        blocchi.append(
-            f"### {b['titolo']}\n"
-            f"Corpo: {b['corpo']} | Categoria: {b['categoria']} | Posti: {b['posti']}\n"
-            f"Pubblicato: {b['data_pubblicazione'] or 'n.d.'} | Apertura: {b['data_apertura'] or 'n.d.'} | "
-            f"Scadenza: {b['data_scadenza'] or 'n.d.'}{' (STIMA, non ufficiale)' if b['stimato'] else ''}\n"
-            f"Descrizione: {b['descrizione']}\n"
-            f"Dettagli aggiuntivi: {b['testo_indicizzato']}\n"
-            f"Fonte: {b['fonte_url']} ({b['fonte_tipo']})\n"
-        )
-    return "\n".join(blocchi)
+Comportati come un vero colloquio: fai UNA domanda alla volta (motivazionali, situazionali, gestione
+dello stress, lavoro di squadra, valori — variale, non ripetere sempre le stesse), aspetta la risposta
+del candidato, poi fai una domanda di follow-up naturale o passa al tema successivo. Tono professionale
+ma non ostile, come farebbe un vero selezionatore. Se è il primo messaggio della conversazione, presentati
+brevemente e fai la prima domanda.
 
+Quando l'utente scrive esattamente "Per favore concludi il colloquio e dammi una valutazione dettagliata
+di ogni mia risposta.", interrompi le domande e fornisci invece una valutazione strutturata: per OGNI
+risposta data finora nella conversazione, un giudizio qualitativo breve su chiarezza, coerenza e
+concretezza (es. "risposta 1: chiara ma generica, manca un esempio concreto"). Poi un breve commento
+d'insieme. NON assegnare mai un punteggio numerico, non fare alcuna valutazione psicologica o clinica
+della persona, non dire se "supererebbe" o meno una selezione reale.
 
-def ask_bandi_assistant(api_key, bandi_rows, domanda):
-    if not api_key:
-        return dict(ok=False, error="no_api_key")
+Rispondi sempre in italiano, senza markdown pesante (niente intestazioni, al massimo elenchi puntati
+semplici nella valutazione finale)."""
 
-    contesto = _build_bandi_context(bandi_rows)
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=500,
-            system=SYSTEM_PROMPT_BANDI,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"CONTESTO (testi dei bandi indicizzati):\n{contesto}\n\nDOMANDA: {domanda}",
-                }
-            ],
-        )
-        testo = "".join(block.text for block in response.content if block.type == "text")
-        return dict(ok=True, testo=testo.strip())
-    except anthropic.APIError as e:
-        return dict(ok=False, error=f"api_error: {e}")
-    except Exception as e:
-        return dict(ok=False, error=f"errore: {e}")
+TRIGGER_VALUTAZIONE_COLLOQUIO = (
+    "Per favore concludi il colloquio e dammi una valutazione dettagliata di ogni mia risposta."
+)
 
 
 def build_coach_context(profile, piano, sessioni_fatte, totale_sessioni, streak):
@@ -100,7 +81,7 @@ def build_coach_context(profile, piano, sessioni_fatte, totale_sessioni, streak)
     )
 
 
-def stream_chat(api_key, system_prompt, messaggi):
+def stream_chat(api_key, system_prompt, messaggi, abilita_ricerca_web=False):
     """Generator che produce il testo della risposta Claude a pezzi, per lo streaming lato client.
 
     messaggi: lista di {"role": "user"|"assistant", "content": str}, cronologia completa
@@ -110,42 +91,16 @@ def stream_chat(api_key, system_prompt, messaggi):
         yield "[Assistente AI non configurato in questo ambiente.]"
         return
 
+    kwargs = dict(model=MODEL, max_tokens=800, system=system_prompt, messages=messaggi)
+    if abilita_ricerca_web:
+        kwargs["tools"] = [WEB_SEARCH_TOOL]
+
     try:
         client = anthropic.Anthropic(api_key=api_key)
-        with client.messages.stream(
-            model=MODEL,
-            max_tokens=700,
-            system=system_prompt,
-            messages=messaggi,
-        ) as stream:
+        with client.messages.stream(**kwargs) as stream:
             for testo in stream.text_stream:
                 yield testo
     except anthropic.APIError as e:
         yield f"\n\n[Errore nel contattare l'assistente AI: {e}]"
     except Exception as e:
         yield f"\n\n[Errore imprevisto: {e}]"
-
-
-def ai_feedback_colloquio(api_key, domanda, risposta):
-    if not api_key:
-        return dict(ok=False, error="no_api_key")
-
-    try:
-        client = anthropic.Anthropic(api_key=api_key)
-        response = client.messages.create(
-            model=MODEL,
-            max_tokens=400,
-            system=SYSTEM_PROMPT_COLLOQUIO,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"DOMANDA DI COLLOQUIO: {domanda}\n\nRISPOSTA DEL CANDIDATO: {risposta}",
-                }
-            ],
-        )
-        testo = "".join(block.text for block in response.content if block.type == "text")
-        return dict(ok=True, testo=testo.strip())
-    except anthropic.APIError as e:
-        return dict(ok=False, error=f"api_error: {e}")
-    except Exception as e:
-        return dict(ok=False, error=f"errore: {e}")

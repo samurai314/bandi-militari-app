@@ -3,6 +3,13 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 
+{% if not attivo_oggi %}
+<div class="disclaimer" style="text-align:center;">
+  👋 Non hai ancora fatto nulla oggi — fai un <a href="{{ url_for('quiz.home') }}">quiz veloce</a> o segna una sessione del
+  <a href="{{ url_for('fisico.piano') }}">piano fisico</a> per continuare la tua streak!
+</div>
+{% endif %}
+
 <div class="card">
   {% if bando %}
     <h2>{{ bando['titolo'] }}</h2>
