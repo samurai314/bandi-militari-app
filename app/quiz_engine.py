@@ -89,7 +89,8 @@ def pick_questions(db, user_id, materia=None, limit=10, mode="practice"):
         new_qs = db.execute(
             f"""SELECT * FROM quiz_questions
                 WHERE id NOT IN (SELECT question_id FROM quiz_progress WHERE user_id = ?)
-                {new_filter}""",
+                {new_filter}
+                ORDER BY RANDOM()""",
             new_params,
         ).fetchall()
 
