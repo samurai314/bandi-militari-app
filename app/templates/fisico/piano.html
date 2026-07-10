@@ -4,6 +4,14 @@
 <div class="card">
   <h2>Il tuo piano fisico</h2>
   <p>Livello di partenza classificato: <strong>{{ piano.livello }}</strong> — Piano su <strong>{{ piano.n_settimane }} settimane</strong>, {{ piano.giorni_a_settimana }} giorni/settimana.</p>
+  <p style="font-size:0.85rem;color:var(--testo-muto);">
+    {% if profile['settimane_preferite'] %}
+      Durata basata sulla tua preferenza indicata ({{ profile['settimane_preferite'] }} settimane){% if bando and bando['data_scadenza'] %}, adattata al tempo realmente disponibile prima della scadenza{% endif %}.
+    {% else %}
+      Durata stimata automaticamente in base al tuo livello di partenza ({{ piano.livello }}): puoi cambiarla in
+      <a href="{{ url_for('impostazioni.index') }}">Impostazioni</a> se pensi di aver bisogno di più o meno tempo.
+    {% endif %}
+  </p>
 
   <p style="font-size:0.9rem;">Sessioni completate: <strong>{{ n_completate }} / {{ totale_sessioni }}</strong></p>
   <div class="progress-bar"><div style="width:{{ (100*n_completate/totale_sessioni) if totale_sessioni else 0 }}%"></div></div>

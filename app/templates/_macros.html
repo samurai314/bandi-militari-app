@@ -26,7 +26,7 @@
 <div class="chat-container card">
   <div class="chat-messages" id="chat-messages">
     {% for m in messaggi %}
-      <div class="chat-bubble {{ m['ruolo'] }}">{{ m['contenuto'] }}</div>
+      <div class="chat-bubble {{ m['ruolo'] }}">{{ m['contenuto'] | pulisci_md }}</div>
     {% else %}
       <p style="color:var(--testo-muto);font-size:0.9rem;">Nessun messaggio ancora: scrivi la tua prima domanda qui sotto.</p>
     {% endfor %}
@@ -59,6 +59,12 @@
     return div;
   }
 
+  function pulisciMarkdown(testo) {
+    return testo
+      .replace(/\*\*(.+?)\*\*/g, '"$1"')
+      .replace(/(^|[^*])\*(?!\*)(\S[^*\n]*?\S|\S)\*(?!\*)/g, '$1"$2"');
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     var testo = input.value.trim();
@@ -80,6 +86,7 @@
       .then(function (response) {
         var reader = response.body.getReader();
         var decoder = new TextDecoder();
+        var testoGrezzo = '';
 
         function leggi() {
           return reader.read().then(function (result) {
@@ -88,7 +95,8 @@
               input.focus();
               return;
             }
-            assistantBubble.textContent += decoder.decode(result.value, { stream: true });
+            testoGrezzo += decoder.decode(result.value, { stream: true });
+            assistantBubble.textContent = pulisciMarkdown(testoGrezzo);
             scrollToBottom();
             return leggi();
           });

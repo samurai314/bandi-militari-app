@@ -92,6 +92,14 @@
       {% endfor %}
     </select>
 
+    <label>Quante settimane pensi di aver bisogno per prepararti?</label>
+    <select name="settimane_preferite">
+      <option value="" {% if not profile['settimane_preferite'] %}selected{% endif %}>Non lo so, stimalo in base al mio livello</option>
+      {% for n in [4,6,8,12,16] %}
+        <option value="{{ n }}" {% if profile['settimane_preferite']==n %}selected{% endif %}>{{ n }} settimane</option>
+      {% endfor %}
+    </select>
+
     <button class="btn" type="submit">Aggiorna allenamento</button>
   </form>
 </div>

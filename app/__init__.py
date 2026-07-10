@@ -35,6 +35,7 @@ def create_app():
     app.register_blueprint(impostazioni.bp)
     app.register_blueprint(coach.bp)
 
+    from .db import pulisci_markdown
     from .fisico_engine import settimane_rimanenti
     from .icons import icona_per_esercizio, video_per_esercizio
     from .utils import formatta_finestra_prevista, get_csrf_token
@@ -42,6 +43,7 @@ def create_app():
     app.jinja_env.filters["icona"] = icona_per_esercizio
     app.jinja_env.filters["video_esercizio"] = video_per_esercizio
     app.jinja_env.filters["settimane_rimanenti"] = settimane_rimanenti
+    app.jinja_env.filters["pulisci_md"] = pulisci_markdown
     app.jinja_env.globals["finestra_prevista"] = formatta_finestra_prevista
 
     @app.context_processor

@@ -58,16 +58,37 @@ def classifica_livello(profile):
     return "principiante"
 
 
-def settimane_disponibili(data_scadenza_iso):
-    if not data_scadenza_iso:
-        return 8
-    try:
-        scadenza = date.fromisoformat(data_scadenza_iso)
-    except ValueError:
-        return 8
-    giorni = (scadenza - date.today()).days
-    settimane = giorni // 7
-    return max(4, min(16, settimane)) if settimane > 0 else 4
+# Durata di piano di default per livello: chi parte già in forma ha bisogno
+# di meno tempo per arrivare pronto, chi parte da zero ne ha bisogno di più.
+# Usata solo quando l'utente non indica una propria preferenza di durata.
+SETTIMANE_DEFAULT_PER_LIVELLO = {"principiante": 12, "intermedio": 8, "avanzato": 6}
+
+
+def settimane_disponibili(data_scadenza_iso, livello=None, settimane_preferite=None):
+    """Calcola la durata del piano combinando tre fattori:
+    - il tempo che l'utente stesso ritiene di aver bisogno (se indicato)
+    - altrimenti una stima di default in base al livello di partenza individuale
+    - il tempo realmente disponibile prima della scadenza del bando (se nota), che
+      fa comunque da tetto massimo: non si può allenarsi più a lungo di quanto manchi.
+    """
+    entro_scadenza = None
+    if data_scadenza_iso:
+        try:
+            scadenza = date.fromisoformat(data_scadenza_iso)
+            giorni = (scadenza - date.today()).days
+            if giorni > 0:
+                entro_scadenza = giorni // 7
+        except ValueError:
+            pass
+
+    if settimane_preferite:
+        desiderate = max(2, min(24, settimane_preferite))
+    else:
+        desiderate = SETTIMANE_DEFAULT_PER_LIVELLO.get(livello, 8)
+
+    if entro_scadenza:
+        return max(4, min(entro_scadenza, desiderate, 16))
+    return max(4, min(desiderate, 20))
 
 
 def settimane_rimanenti(data_scadenza_iso):
@@ -101,7 +122,8 @@ def _volume_base(livello):
 
 def genera_piano(profile, data_scadenza_iso=None):
     livello = classifica_livello(profile)
-    n_settimane = settimane_disponibili(data_scadenza_iso)
+    settimane_preferite = profile["settimane_preferite"] if "settimane_preferite" in profile.keys() else None
+    n_settimane = settimane_disponibili(data_scadenza_iso, livello=livello, settimane_preferite=settimane_preferite)
     giorni_sett = profile["giorni_settimana"] or 3
     giorni_sett = min(6, max(3, giorni_sett))
     struttura = STRUTTURA_GIORNI[giorni_sett]

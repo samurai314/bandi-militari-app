@@ -146,6 +146,7 @@ MIGRAZIONI = [
     "ALTER TABLE bandi ADD COLUMN stima_periodo_a TEXT",
     "ALTER TABLE quiz_questions ADD COLUMN fonte TEXT DEFAULT 'originale'",
     "ALTER TABLE quiz_questions ADD COLUMN corpo_specifico TEXT",
+    "ALTER TABLE profiles ADD COLUMN settimane_preferite INTEGER",
 ]
 
 
@@ -157,12 +158,23 @@ def get_db():
     return g.db
 
 
+def pulisci_markdown(testo):
+    """Sostituisce il grassetto markdown (**testo**) con virgolette, dato che le
+    bolle di chat mostrano il testo così com'è (senza rendering markdown)."""
+    import re
+
+    testo = re.sub(r"\*\*(.+?)\*\*", r'"\1"', testo)
+    testo = re.sub(r"(?<!\*)\*(?!\*)(\S[^*\n]*?\S|\S)\*(?!\*)", r'"\1"', testo)
+    return testo
+
+
 def salva_messaggio_chat(db_path, user_id, contesto, ruolo, contenuto):
     """Apre una connessione indipendente da `g`: usata dentro i generator di
     streaming, dove il contesto applicativo/di richiesta potrebbe già essere
     stato chiuso quando il generator termina di produrre l'ultimo pezzo."""
     from datetime import datetime
 
+    contenuto = pulisci_markdown(contenuto)
     conn = sqlite3.connect(db_path)
     conn.execute(
         "INSERT INTO chat_messages (user_id, contesto, ruolo, contenuto, timestamp) VALUES (?, ?, ?, ?, ?)",

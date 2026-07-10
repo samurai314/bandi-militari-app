@@ -99,12 +99,13 @@ def step3():
     if request.method == "POST":
         db.execute(
             """UPDATE profiles SET
-                contesto = ?, giorni_settimana = ?,
+                contesto = ?, giorni_settimana = ?, settimane_preferite = ?,
                 onboarding_step = 4, onboarding_completed = 1, onboarding_completed_at = ?
                WHERE user_id = ?""",
             (
                 request.form.get("contesto"),
                 request.form.get("giorni_settimana"),
+                request.form.get("settimane_preferite") or None,
                 datetime.utcnow().date().isoformat(),
                 user["id"],
             ),
