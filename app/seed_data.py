@@ -241,6 +241,100 @@ BANDI = [
             "orale di matematica, tirocinio finale a Modena."
         ),
     ),
+    dict(
+        corpo="Esercito Italiano",
+        categoria="VFI (Volontari Ferma Iniziale)",
+        titolo="Concorso VFI Esercito 2026 - 3° blocco (6.000 posti totali)",
+        posti="6.000 posti totali su 3 blocchi da 2.000 (1° e 2° blocco chiusi, 3° blocco in corso)",
+        descrizione=(
+            "Reclutamento di Volontari in Ferma Prefissata Iniziale nell'Esercito Italiano, aperto ai "
+            "civili tra i 18 e i 24 anni con licenza media. Posti ordinari, non specializzati e figure "
+            "tecniche specializzate (elettricisti, idraulici, muratori, falegnami). Il 3° blocco di "
+            "incorporamento è aperto dal 23 giugno al 22 luglio 2026."
+        ),
+        testo_indicizzato=(
+            "Concorso VFI Esercito 2026 volontari ferma prefissata iniziale 6000 posti tre blocchi "
+            "2000 posti ciascuno primo blocco ottobre novembre 2025 secondo blocco gennaio febbraio 2026 "
+            "terzo blocco giugno luglio 2026 licenza media civili 18 24 anni posti specializzati "
+            "elettricisti idraulici muratori falegnami Portale Concorsi Online concorsi.difesa.it"
+        ),
+        data_pubblicazione="2025-10-14",
+        data_apertura="2026-06-23",
+        data_scadenza="2026-07-22",
+        stimato=0,
+        fonte_url="https://concorsi.difesa.it/ei/VFI/20262BL/Pagine/home.aspx",
+        fonte_tipo="Ministero della Difesa (ufficiale)",
+        note="Bando aperto anche a candidati civili. Terzo e ultimo blocco di incorporamento per il 2026.",
+    ),
+    dict(
+        corpo="Marina Militare",
+        categoria="Allievi Ufficiali (Accademia Navale)",
+        titolo="Concorso Accademia Navale Marina Militare 2026 - 186 posti",
+        posti="186 posti (171 Corpi Vari, 15 Corpo Sanitario)",
+        descrizione=(
+            "Concorso per l'ammissione al primo anno dei corsi normali dell'Accademia Navale di "
+            "Livorno. Requisiti: età tra 17 e 22 anni, diploma di istruzione secondaria di secondo grado."
+        ),
+        testo_indicizzato=(
+            "Concorso Accademia Navale Marina Militare 2026 186 allievi ufficiali Livorno Corpi Vari "
+            "Stato Maggiore Genio Navale Commissariato Capitanerie di Porto Corpo Sanitario prova scritta "
+            "selezione culturale inglese Ancona accertamenti psicofisici attitudinali prove efficienza "
+            "fisica tirocinio"
+        ),
+        data_pubblicazione="2025-12-11",
+        data_apertura="2025-12-11",
+        data_scadenza="2026-01-09",
+        stimato=0,
+        fonte_url="https://www.difesa.it/assets/allegati/84637/bando_accademia_mm_2026.pdf",
+        fonte_tipo="Ministero della Difesa (ufficiale)",
+        note="Scadenza già trascorsa: utile come riferimento per la prossima edizione.",
+    ),
+    dict(
+        corpo="Aeronautica Militare",
+        categoria="Allievi Ufficiali (Accademia Aeronautica)",
+        titolo="Concorso Accademia Aeronautica 2026 - 155 posti",
+        posti="155 posti (piloti, armi, genio aeronautico, commissariato, sanitario)",
+        descrizione=(
+            "Concorso per l'ammissione alla prima classe dei corsi regolari dell'Accademia Aeronautica "
+            "di Pozzuoli. Requisiti: diploma di istruzione secondaria di secondo grado (anche da "
+            "conseguire entro l'anno scolastico 2025/2026)."
+        ),
+        testo_indicizzato=(
+            "Concorso Accademia Aeronautica 2026 155 allievi ufficiali Pozzuoli ruolo naviganti pilota "
+            "ruolo armi genio aeronautico commissariato corpo sanitario aeronautico prova scritta "
+            "preselezione inglese Guidonia accertamenti psicofisici prove efficienza fisica"
+        ),
+        data_pubblicazione="2025-12-12",
+        data_apertura="2025-12-12",
+        data_scadenza="2026-01-19",
+        stimato=0,
+        fonte_url="https://concorsi.difesa.it/am/accademia/2026/Pagine/home.aspx",
+        fonte_tipo="Ministero della Difesa (ufficiale)",
+        note="Scadenza già trascorsa: utile come riferimento per la prossima edizione.",
+    ),
+    dict(
+        corpo="Esercito Italiano",
+        categoria="Allievi Marescialli (Scuola Sottufficiali)",
+        titolo="Concorso Allievi Marescialli Esercito 2026 - 29° corso, 140 posti",
+        posti="140 posti (20% riservato a familiari di caduti/invalidi in servizio)",
+        descrizione=(
+            "Concorso per l'ammissione al 29° corso biennale (2026-2028) di Allievi Marescialli presso "
+            "la Scuola Sottufficiali dell'Esercito. Limite di età: 26 anni per i civili, 28 per i "
+            "militari già in servizio."
+        ),
+        testo_indicizzato=(
+            "Concorso Allievi Marescialli Esercito 2026 140 posti 29 corso biennale 2026 2028 Scuola "
+            "Sottufficiali dell'Esercito riservati familiari caduti invalidi servizio SPID CIE "
+            "concorsi.difesa.it prove efficienza fisica accertamento attitudinale psicofisico"
+        ),
+        data_pubblicazione="2026-03-31",
+        data_apertura="2026-03-31",
+        data_scadenza="2026-04-29",
+        stimato=0,
+        fonte_url="https://www.difesa.it/amministrazione-trasparente/bandiconcorsopersomil/",
+        fonte_tipo="Ministero della Difesa (ufficiale)",
+        note="Scadenza già trascorsa: utile come riferimento per la prossima edizione.",
+    ),
 ]
 
 # Domande quiz originali (non tratte da raccolte terze), organizzate per materia.
