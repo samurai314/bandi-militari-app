@@ -211,6 +211,36 @@ BANDI = [
             "nessun bando risulta ancora pubblicato per il 2026."
         ),
     ),
+    dict(
+        corpo="Esercito Italiano",
+        categoria="Allievi Ufficiali (Accademia Militare)",
+        titolo="Concorso Accademia Militare Esercito 2026 - 208° Corso, 190 posti",
+        posti="190 posti",
+        descrizione=(
+            "Concorso per l'ammissione al 208° Corso dell'Accademia Militare di Modena per la "
+            "formazione degli Allievi Ufficiali dell'Esercito. Requisiti: età tra 17 e 22 anni, "
+            "diploma di istruzione secondaria di secondo grado (anche conseguito entro l'anno "
+            "scolastico 2025/2026)."
+        ),
+        testo_indicizzato=(
+            "Concorso Accademia Militare Esercito 2026 208 corso allievi ufficiali Modena 190 posti "
+            "prova scritta preselezione 120 quiz prove efficienza fisica accertamenti psicofisici "
+            "attitudinali composizione italiana test inglese prova orale matematica tirocinio finale "
+            "Centro Selezione Reclutamento Nazionale Foligno Portale Concorsi Online Ministero Difesa"
+        ),
+        data_pubblicazione="2025-11-01",
+        data_apertura="2025-11-01",
+        data_scadenza="2026-01-19",
+        stimato=0,
+        fonte_url="https://concorsi.difesa.it/ei/accademia/2026/Pagine/home.aspx",
+        fonte_tipo="Ministero della Difesa (ufficiale)",
+        note=(
+            "Scadenza già trascorsa (prorogata al 19/01/2026): utile come riferimento per la struttura "
+            "delle prove in vista della prossima edizione. Prove: preselezione scritta (120 quiz), "
+            "efficienza fisica, accertamenti psicoattitudinali, composizione italiana, test di inglese, "
+            "orale di matematica, tirocinio finale a Modena."
+        ),
+    ),
 ]
 
 # Domande quiz originali (non tratte da raccolte terze), organizzate per materia.
@@ -1111,19 +1141,23 @@ CHECKLIST_TEMPLATE = [
 
 def seed_if_empty():
     db = get_db()
-    if db.execute("SELECT COUNT(*) FROM bandi").fetchone()[0] == 0:
-        for b in BANDI:
-            valori = {**b, "stima_periodo_da": b.get("stima_periodo_da"), "stima_periodo_a": b.get("stima_periodo_a")}
-            db.execute(
-                """INSERT INTO bandi
-                (corpo, categoria, titolo, posti, descrizione, testo_indicizzato,
-                 data_pubblicazione, data_apertura, data_scadenza, stimato, fonte_url, fonte_tipo, note,
-                 stima_periodo_da, stima_periodo_a)
-                VALUES (:corpo, :categoria, :titolo, :posti, :descrizione, :testo_indicizzato,
-                 :data_pubblicazione, :data_apertura, :data_scadenza, :stimato, :fonte_url, :fonte_tipo, :note,
-                 :stima_periodo_da, :stima_periodo_a)""",
-                valori,
-            )
+    # Inserimento incrementale per titolo: i nuovi bandi aggiunti in futuro
+    # arrivano anche su un database già popolato, senza svuotarlo.
+    for b in BANDI:
+        esiste = db.execute("SELECT 1 FROM bandi WHERE titolo = ?", (b["titolo"],)).fetchone()
+        if esiste:
+            continue
+        valori = {**b, "stima_periodo_da": b.get("stima_periodo_da"), "stima_periodo_a": b.get("stima_periodo_a")}
+        db.execute(
+            """INSERT INTO bandi
+            (corpo, categoria, titolo, posti, descrizione, testo_indicizzato,
+             data_pubblicazione, data_apertura, data_scadenza, stimato, fonte_url, fonte_tipo, note,
+             stima_periodo_da, stima_periodo_a)
+            VALUES (:corpo, :categoria, :titolo, :posti, :descrizione, :testo_indicizzato,
+             :data_pubblicazione, :data_apertura, :data_scadenza, :stimato, :fonte_url, :fonte_tipo, :note,
+             :stima_periodo_da, :stima_periodo_a)""",
+            valori,
+        )
     # Inserimento incrementale (non solo "se la tabella è vuota"): ogni domanda
     # viene aggiunta una sola volta, verificando il testo esatto. Così le nuove
     # domande aggiunte in futuro arrivano anche su un database già popolato,
