@@ -25,6 +25,82 @@ SOGLIE_LIVELLO = {
     "corsa_2000m_sec": {"principiante": 660, "intermedio": 570, "avanzato": 480},  # 11', 9'30, 8'
 }
 
+# Soglie di riferimento per corpo, ISPIRATE ai valori tipici delle edizioni
+# recenti dei rispettivi concorsi. Variano per edizione, sesso ed età: sono
+# valori orientativi per capire il proprio divario, non i minimi ufficiali —
+# quelli fanno fede solo sul bando specifico.
+SOGLIE_PER_CORPO = {
+    "Carabinieri": dict(
+        etichetta="Allievi Carabinieri (valori tipici uomo)",
+        prove=[
+            dict(nome="Corsa 1000 m", tipo="corsa", distanza=1000, tempo_max_sec=240),
+            dict(nome="Piegamenti sulle braccia", tipo="piegamenti", minimo=15),
+        ],
+    ),
+    "Guardia di Finanza": dict(
+        etichetta="Concorsi Guardia di Finanza (valori tipici uomo)",
+        prove=[
+            dict(nome="Corsa 1000 m", tipo="corsa", distanza=1000, tempo_max_sec=235),
+            dict(nome="Piegamenti sulle braccia", tipo="piegamenti", minimo=15),
+        ],
+    ),
+    "Esercito/Marina/Aeronautica": dict(
+        etichetta="VFI / prove Forze Armate (valori tipici uomo)",
+        prove=[
+            dict(nome="Corsa 2000 m", tipo="corsa", distanza=2000, tempo_max_sec=630),
+            dict(nome="Piegamenti sulle braccia", tipo="piegamenti", minimo=12),
+            dict(nome="Trazioni alla sbarra", tipo="trazioni", minimo=3),
+        ],
+    ),
+}
+
+
+def confronto_soglie(profile, corpo_tag):
+    """Confronta i valori dell'utente con le soglie tipiche del suo corpo.
+
+    Ritorna una lista di dict con: prova, richiesto, tuo, ok (bool o None se
+    manca il dato), gap (testo leggibile).
+    """
+    config = SOGLIE_PER_CORPO.get(corpo_tag)
+    if not config:
+        return None
+
+    def fmt_tempo(sec):
+        return f"{sec // 60}'{sec % 60:02d}\""
+
+    righe = []
+    for prova in config["prove"]:
+        if prova["tipo"] == "corsa":
+            richiesto = f"≤ {fmt_tempo(prova['tempo_max_sec'])}"
+            if profile["corsa_distanza"] and profile["corsa_tempo_sec"]:
+                # Normalizzazione proporzionale alla distanza della prova:
+                # approssimata (il ritmo reale non scala linearmente).
+                tempo_norm = round(profile["corsa_tempo_sec"] * (prova["distanza"] / profile["corsa_distanza"]))
+                ok = tempo_norm <= prova["tempo_max_sec"]
+                gap = tempo_norm - prova["tempo_max_sec"]
+                righe.append(dict(
+                    prova=prova["nome"], richiesto=richiesto,
+                    tuo=f"~{fmt_tempo(tempo_norm)} (stimato dal tuo test)",
+                    ok=ok,
+                    gap=("Nei limiti" if ok else f"Ti mancano circa {gap} secondi"),
+                ))
+            else:
+                righe.append(dict(prova=prova["nome"], richiesto=richiesto, tuo="dato mancante", ok=None, gap="Inserisci un test di corsa in Impostazioni"))
+        else:
+            campo = prova["tipo"]
+            valore = profile[campo]
+            richiesto = f"≥ {prova['minimo']}"
+            if valore is not None:
+                ok = valore >= prova["minimo"]
+                righe.append(dict(
+                    prova=prova["nome"], richiesto=richiesto, tuo=str(valore), ok=ok,
+                    gap=("Nei limiti" if ok else f"Te ne mancano {prova['minimo'] - valore}"),
+                ))
+            else:
+                righe.append(dict(prova=prova["nome"], richiesto=richiesto, tuo="dato mancante", ok=None, gap="Inserisci il dato in Impostazioni"))
+
+    return dict(etichetta=config["etichetta"], righe=righe)
+
 
 def classifica_livello(profile):
     punteggi = []

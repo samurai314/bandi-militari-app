@@ -43,4 +43,17 @@
 })();
 </script>
 {% endif %}
+
+{% if valutazioni %}
+<div class="card">
+  <h3>📜 Le tue valutazioni precedenti</h3>
+  <p style="font-size:0.8rem;color:var(--testo-muto);">Restano salvate anche quando inizi una nuova conversazione: usale per vedere se stai migliorando.</p>
+  {% for v in valutazioni %}
+    <details style="margin-bottom:0.6rem;">
+      <summary style="cursor:pointer;font-size:0.9rem;font-weight:600;">Valutazione del {{ v['timestamp'][:10] }}</summary>
+      <p style="white-space:pre-line;font-size:0.88rem;margin:0.5rem 0 0;">{{ v['risposta'] }}</p>
+    </details>
+  {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

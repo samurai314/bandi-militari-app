@@ -175,6 +175,20 @@ def pulisci_markdown(testo):
     return testo
 
 
+def salva_valutazione_colloquio(db_path, user_id, testo):
+    """Archivia una valutazione finale del colloquio in colloquio_log, così
+    resta consultabile anche dopo il reset della chat."""
+    from datetime import datetime
+
+    conn = sqlite3.connect(db_path)
+    conn.execute(
+        "INSERT INTO colloquio_log (user_id, domanda, risposta, timestamp) VALUES (?, '__valutazione__', ?, ?)",
+        (user_id, pulisci_markdown(testo), datetime.utcnow().isoformat()),
+    )
+    conn.commit()
+    conn.close()
+
+
 def salva_messaggio_chat(db_path, user_id, contesto, ruolo, contenuto):
     """Apre una connessione indipendente da `g`: usata dentro i generator di
     streaming, dove il contesto applicativo/di richiesta potrebbe già essere

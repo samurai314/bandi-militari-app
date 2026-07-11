@@ -26,6 +26,29 @@
   <p><a class="btn btn-secondary" href="{{ url_for('coach.home') }}">🤖 Parla con il coach AI</a></p>
 </div>
 
+{% if soglie %}
+<div class="card">
+  <h3>🎯 Il tuo divario dalle soglie del concorso</h3>
+  <p style="font-size:0.8rem;color:var(--testo-muto);">{{ soglie.etichetta }} — valori orientativi ispirati alle edizioni
+    recenti (cambiano per edizione, sesso ed età): i minimi validi sono solo quelli sul bando ufficiale.</p>
+  <table>
+    <tr><th>Prova</th><th>Soglia tipica</th><th>Il tuo valore</th><th>Stato</th></tr>
+    {% for r in soglie.righe %}
+      <tr>
+        <td>{{ r.prova }}</td>
+        <td>{{ r.richiesto }}</td>
+        <td>{{ r.tuo }}</td>
+        <td>
+          {% if r.ok is none %}<span class="badge badge-previsto">{{ r.gap }}</span>
+          {% elif r.ok %}<span class="badge badge-attivo">✓ {{ r.gap }}</span>
+          {% else %}<span class="badge badge-chiuso">✗ {{ r.gap }}</span>{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
 <script>
 document.addEventListener('click', function (e) {
   var btn = e.target.closest('.video-toggle');
@@ -70,7 +93,13 @@ document.addEventListener('click', function (e) {
           </button>
         </form>
         <div style="flex:1;{% if fatto %}opacity:0.6;{% endif %}">
-          <p style="margin:0 0 0.5rem;"><strong>Giorno {{ loop.index }} — {{ giorno.tipo }}</strong></p>
+          <p style="margin:0 0 0.5rem;">
+            <strong>Giorno {{ loop.index }} — {{ giorno.tipo }}</strong>
+            {% if not fatto %}
+              <button type="button" class="btn btn-outline avvia-guidata" style="padding:0.2rem 0.6rem;font-size:0.78rem;margin-left:0.5rem;">▶ Sessione guidata</button>
+            {% endif %}
+          </p>
+          <div class="sessione-guidata" style="display:none;"></div>
           <div class="esercizi-grid">
             {% for e in giorno.esercizi %}
               {% set vid = e | video_esercizio %}
@@ -91,4 +120,62 @@ document.addEventListener('click', function (e) {
     {% endfor %}
   </div>
 {% endfor %}
+
+<script>
+// Sessione guidata: mostra un esercizio alla volta con timer di recupero tra
+// uno e l'altro. Legge gli esercizi già presenti nella pagina, nessuna
+// chiamata al server.
+document.addEventListener('click', function (e) {
+  var avvia = e.target.closest('.avvia-guidata');
+  if (!avvia) return;
+
+  var blocco = avvia.closest('div[style*="flex:1"]');
+  var pannello = blocco.querySelector('.sessione-guidata');
+  var esercizi = Array.from(blocco.querySelectorAll('.esercizio-card span[style*="flex:1"]')).map(function (s) {
+    return s.textContent.trim();
+  });
+  if (!esercizi.length) return;
+
+  var indice = 0;
+  var RIPOSO_SECONDI = 90;
+
+  function render() {
+    if (indice >= esercizi.length) {
+      pannello.innerHTML = '<div class="disclaimer" style="border-left-color: var(--verde-brillante);">' +
+        '🎉 Sessione completata! Ricordati di segnarla con il pulsante ○ qui a fianco.</div>';
+      return;
+    }
+    pannello.innerHTML =
+      '<div class="disclaimer" style="border-left-color: var(--verde-brillante);">' +
+      '<strong>Esercizio ' + (indice + 1) + ' di ' + esercizi.length + ':</strong> ' + esercizi[indice] +
+      '<br><button type="button" class="btn" id="guidata-fatto" style="margin-top:0.5rem;">Fatto → riposo</button> ' +
+      '<button type="button" class="btn btn-secondary" id="guidata-stop" style="margin-top:0.5rem;">Interrompi</button>' +
+      '</div>';
+    document.getElementById('guidata-stop').onclick = function () {
+      pannello.style.display = 'none';
+    };
+    document.getElementById('guidata-fatto').onclick = function () {
+      indice += 1;
+      if (indice >= esercizi.length) { render(); return; }
+      var rimanente = RIPOSO_SECONDI;
+      pannello.innerHTML = '<div class="disclaimer">😮‍💨 Riposo: <strong id="guidata-timer">' + rimanente + '</strong> secondi ' +
+        '<button type="button" class="btn btn-secondary" id="guidata-salta" style="margin-left:0.5rem;">Salta riposo</button></div>';
+      var timerEl = document.getElementById('guidata-timer');
+      var intervallo = setInterval(function () {
+        rimanente -= 1;
+        if (timerEl) timerEl.textContent = Math.max(rimanente, 0);
+        if (rimanente <= 0) { clearInterval(intervallo); render(); }
+      }, 1000);
+      document.getElementById('guidata-salta').onclick = function () {
+        clearInterval(intervallo);
+        render();
+      };
+    };
+  }
+
+  pannello.style.display = 'block';
+  render();
+  pannello.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+</script>
 {% endblock %}

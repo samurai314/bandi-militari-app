@@ -2,9 +2,9 @@ from datetime import datetime
 
 from flask import Blueprint, Response, current_app, redirect, render_template, request, stream_with_context, url_for
 
-from ..ai_assistant import SYSTEM_PROMPT_COLLOQUIO_CHAT, stream_chat
+from ..ai_assistant import SYSTEM_PROMPT_COLLOQUIO_CHAT, TRIGGER_VALUTAZIONE_COLLOQUIO, stream_chat
 from ..colloquio_engine import SEZIONI_ANSIA
-from ..db import get_db, salva_messaggio_chat
+from ..db import get_db, salva_messaggio_chat, salva_valutazione_colloquio
 from ..utils import get_current_user, limite_ai_raggiunto, login_required, onboarding_required, touch_streak
 
 bp = Blueprint("colloquio", __name__, url_prefix="/colloquio")
@@ -22,8 +22,15 @@ def home():
         "SELECT * FROM chat_messages WHERE user_id = ? AND contesto = ? ORDER BY id ASC",
         (user["id"], CONTESTO),
     ).fetchall()
+    valutazioni = db.execute(
+        """SELECT * FROM colloquio_log
+           WHERE user_id = ? AND domanda = '__valutazione__'
+           ORDER BY timestamp DESC LIMIT 5""",
+        (user["id"],),
+    ).fetchall()
     return render_template(
-        "colloquio/intervista.html", messaggi=messaggi, ai_enabled=current_app.config["AI_ENABLED"]
+        "colloquio/intervista.html", messaggi=messaggi, valutazioni=valutazioni,
+        ai_enabled=current_app.config["AI_ENABLED"],
     )
 
 
@@ -60,6 +67,8 @@ def messaggio():
     db_path = current_app.config["DATABASE"]
     user_id = user["id"]
 
+    e_valutazione = (testo_utente == TRIGGER_VALUTAZIONE_COLLOQUIO)
+
     def genera():
         pezzi = []
         for pezzo in stream_chat(api_key, SYSTEM_PROMPT_COLLOQUIO_CHAT, messaggi_claude):
@@ -67,6 +76,8 @@ def messaggio():
             yield pezzo
         risposta_completa = "".join(pezzi)
         salva_messaggio_chat(db_path, user_id, CONTESTO, "assistant", risposta_completa)
+        if e_valutazione and risposta_completa.strip():
+            salva_valutazione_colloquio(db_path, user_id, risposta_completa)
 
     return Response(stream_with_context(genera()), mimetype="text/plain")
 

@@ -3,7 +3,8 @@ from datetime import datetime
 from flask import Blueprint, redirect, render_template, request, url_for
 
 from ..db import get_db
-from ..fisico_engine import genera_piano
+from ..fisico_engine import confronto_soglie, genera_piano
+from ..quiz_engine import corpo_specifico_per_bando
 from ..utils import get_current_user, login_required, onboarding_required, touch_streak
 
 bp = Blueprint("fisico", __name__, url_prefix="/fisico")
@@ -30,9 +31,13 @@ def piano():
 
     totale_sessioni = sum(len(w["giorni"]) for w in piano["settimane"])
 
+    corpo_tag = corpo_specifico_per_bando(bando["corpo"]) if bando else None
+    soglie = confronto_soglie(profile, corpo_tag)
+
     return render_template(
         "fisico/piano.html", piano=piano, profile=profile, bando=bando,
         completate=completate, n_completate=len(completate), totale_sessioni=totale_sessioni,
+        soglie=soglie,
     )
 
 
