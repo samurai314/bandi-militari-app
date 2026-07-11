@@ -7,12 +7,23 @@ from flask import Flask, abort, request, session
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-bandi-militari")
     app.config["DATABASE"] = os.path.join(app.root_path, "..", "instance", "app.db")
     app.config["ANTHROPIC_API_KEY"] = os.environ.get("ANTHROPIC_API_KEY")
     app.config["AI_ENABLED"] = bool(app.config["ANTHROPIC_API_KEY"])
+
+    # Hardening del cookie di sessione. SESSION_COOKIE_SECURE va lasciato a
+    # "false" in locale (http) e impostato a "true" nel .env di produzione
+    # (PythonAnywhere serve sempre in https).
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_SECURE"] = os.environ.get("SESSION_COOKIE_SECURE", "false").lower() == "true"
+
+    if test_config:
+        app.config.update(test_config)
+        app.config["AI_ENABLED"] = bool(app.config["ANTHROPIC_API_KEY"])
 
     from . import db
     db.init_app(app)

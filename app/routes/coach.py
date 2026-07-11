@@ -5,7 +5,7 @@ from flask import Blueprint, Response, current_app, redirect, render_template, r
 from ..ai_assistant import SYSTEM_PROMPT_COACH_FISICO, build_coach_context, stream_chat
 from ..db import get_db, salva_messaggio_chat
 from ..fisico_engine import genera_piano
-from ..utils import get_current_user, login_required, onboarding_required
+from ..utils import get_current_user, limite_ai_raggiunto, login_required, onboarding_required
 
 bp = Blueprint("coach", __name__, url_prefix="/fisico/coach")
 
@@ -54,6 +54,12 @@ def messaggio():
 
     if not testo_utente:
         return Response("", mimetype="text/plain")
+
+    if limite_ai_raggiunto(db, user["id"]):
+        return Response(
+            "Hai raggiunto il limite giornaliero di messaggi per l'assistente AI. Riprova domani.",
+            mimetype="text/plain",
+        )
 
     db.execute(
         "INSERT INTO chat_messages (user_id, contesto, ruolo, contenuto, timestamp) VALUES (?, ?, 'user', ?, ?)",

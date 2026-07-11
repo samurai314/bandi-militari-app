@@ -135,6 +135,13 @@ CREATE TABLE IF NOT EXISTS chat_messages (
     contenuto TEXT NOT NULL,
     timestamp TEXT NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS login_attempts (
+    email TEXT PRIMARY KEY,
+    tentativi INTEGER DEFAULT 0,
+    ultimo_tentativo TEXT,
+    bloccato_fino TEXT
+);
 """
 
 # Colonne aggiunte dopo la prima release: le tabelle esistenti (anche già

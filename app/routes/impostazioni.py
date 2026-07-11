@@ -1,4 +1,7 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+import json
+from datetime import datetime
+
+from flask import Blueprint, Response, flash, redirect, render_template, request, session, url_for
 
 from ..db import get_db
 from ..utils import get_current_user, login_required, onboarding_required
@@ -88,3 +91,62 @@ def aggiorna_allenamento():
     db.commit()
     flash("Preferenze di allenamento aggiornate.", "success")
     return redirect(url_for("impostazioni.index"))
+
+
+@bp.route("/esporta")
+@login_required
+@onboarding_required
+def esporta_dati():
+    db = get_db()
+    user = get_current_user()
+    uid = user["id"]
+
+    def righe(query, params=(uid,)):
+        return [dict(r) for r in db.execute(query, params).fetchall()]
+
+    dati = dict(
+        esportato_il=datetime.utcnow().isoformat(),
+        account=dict(email=user["email"], creato_il=user["created_at"]),
+        profilo=righe("SELECT * FROM profiles WHERE user_id = ?"),
+        progressi_quiz=righe("SELECT * FROM quiz_progress WHERE user_id = ?"),
+        sessioni_quiz=righe("SELECT * FROM quiz_sessions_log WHERE user_id = ?"),
+        checklist=righe("SELECT * FROM user_checklist WHERE user_id = ?"),
+        streak=righe("SELECT * FROM streaks WHERE user_id = ?"),
+        badge=righe("SELECT * FROM badges WHERE user_id = ?"),
+        sessioni_allenamento=righe("SELECT * FROM workout_log WHERE user_id = ?"),
+        colloqui=righe("SELECT * FROM colloquio_log WHERE user_id = ?"),
+        conversazioni_ai=righe("SELECT * FROM chat_messages WHERE user_id = ?"),
+    )
+    corpo = json.dumps(dati, indent=2, ensure_ascii=False)
+    return Response(
+        corpo,
+        mimetype="application/json",
+        headers={"Content-Disposition": "attachment; filename=i-miei-dati.json"},
+    )
+
+
+@bp.route("/elimina-account", methods=("POST",))
+@login_required
+@onboarding_required
+def elimina_account():
+    conferma = request.form.get("conferma", "").strip().lower()
+    if conferma != "elimina":
+        flash("Per confermare devi scrivere esattamente \"elimina\" nel campo richiesto.", "error")
+        return redirect(url_for("impostazioni.index"))
+
+    db = get_db()
+    user = get_current_user()
+    uid = user["id"]
+
+    for tabella in (
+        "quiz_progress", "quiz_sessions_log", "user_checklist", "streaks",
+        "badges", "workout_log", "colloquio_log", "chat_messages", "profiles",
+    ):
+        db.execute(f"DELETE FROM {tabella} WHERE user_id = ?", (uid,))
+    db.execute("DELETE FROM login_attempts WHERE email = ?", (user["email"],))
+    db.execute("DELETE FROM users WHERE id = ?", (uid,))
+    db.commit()
+
+    session.clear()
+    flash("Il tuo account e tutti i dati associati sono stati eliminati.", "success")
+    return redirect(url_for("main.index"))

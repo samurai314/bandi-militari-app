@@ -104,4 +104,23 @@
   </form>
 </div>
 
+<div class="card">
+  <h3>I tuoi dati</h3>
+  <p style="font-size:0.85rem;">Puoi scaricare una copia di tutti i dati che abbiamo su di te, o eliminare
+    definitivamente il tuo account. Maggiori dettagli nella <a href="{{ url_for('main.privacy') }}">pagina privacy</a>.</p>
+  <p><a class="btn btn-secondary" href="{{ url_for('impostazioni.esporta_dati') }}">⬇️ Scarica i miei dati (JSON)</a></p>
+</div>
+
+<div class="card" style="border-color: var(--rosso);">
+  <h3 style="color: var(--rosso);">Zona pericolosa</h3>
+  <p style="font-size:0.85rem;">Questa azione è <strong>irreversibile</strong>: cancella il tuo account e
+    tutti i dati associati (profilo, quiz, chat AI, streak, checklist). Non si può annullare.</p>
+  <form method="post" action="{{ url_for('impostazioni.elimina_account') }}" onsubmit="return confirm('Sei sicuro? Questa azione è irreversibile.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Scrivi "elimina" per confermare</label>
+    <input type="text" name="conferma" placeholder="elimina" required>
+    <button class="btn" type="submit" style="background: var(--rosso);">Elimina account definitivamente</button>
+  </form>
+</div>
+
 {% endblock %}

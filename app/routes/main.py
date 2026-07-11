@@ -15,6 +15,11 @@ def service_worker():
     return current_app.send_static_file("sw.js")
 
 
+@bp.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
+
 @bp.route("/")
 def index():
     user = get_current_user()

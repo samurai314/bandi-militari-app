@@ -16,6 +16,11 @@ import anthropic
 
 MODEL = "claude-haiku-4-5-20251001"
 
+# Numero massimo di messaggi (utente+assistente) inviati come cronologia ad
+# ogni richiesta: oltre questa soglia teniamo solo i più recenti, per evitare
+# che conversazioni molto lunghe facciano crescere il costo indefinitamente.
+MAX_MESSAGGI_STORICO = 30
+
 WEB_SEARCH_TOOL = {"type": "web_search_20250305", "name": "web_search", "max_uses": 3}
 
 SYSTEM_PROMPT_BANDI_CHAT = """Sei l'assistente conversazionale di un'app di preparazione ai concorsi militari
@@ -90,6 +95,13 @@ def stream_chat(api_key, system_prompt, messaggi, abilita_ricerca_web=False):
     if not api_key:
         yield "[Assistente AI non configurato in questo ambiente.]"
         return
+
+    if len(messaggi) > MAX_MESSAGGI_STORICO:
+        messaggi = messaggi[-MAX_MESSAGGI_STORICO:]
+        # Il primo messaggio della cronologia troncata deve restare di ruolo
+        # "user" (l'API richiede che la conversazione inizi con l'utente).
+        while messaggi and messaggi[0]["role"] != "user":
+            messaggi = messaggi[1:]
 
     kwargs = dict(model=MODEL, max_tokens=800, system=system_prompt, messages=messaggi)
     if abilita_ricerca_web:

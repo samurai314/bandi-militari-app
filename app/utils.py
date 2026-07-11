@@ -124,6 +124,22 @@ def award_badge(db, user_id, codice):
         )
 
 
+LIMITE_MESSAGGI_AI_GIORNALIERO = 60
+
+
+def messaggi_ai_oggi(db, user_id):
+    oggi = date.today().isoformat()
+    return db.execute(
+        """SELECT COUNT(*) AS c FROM chat_messages
+           WHERE user_id = ? AND ruolo = 'user' AND timestamp LIKE ?""",
+        (user_id, f"{oggi}%"),
+    ).fetchone()["c"]
+
+
+def limite_ai_raggiunto(db, user_id):
+    return messaggi_ai_oggi(db, user_id) >= LIMITE_MESSAGGI_AI_GIORNALIERO
+
+
 def check_quiz_badges(db, user_id):
     total_correct = db.execute(
         "SELECT COALESCE(SUM(correct_count), 0) AS c FROM quiz_progress WHERE user_id = ?", (user_id,)

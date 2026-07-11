@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Privacy e trattamento dati{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Privacy e trattamento dati</h2>
+  <div class="disclaimer rosso">
+    Questa pagina è una descrizione onesta e in chiaro di come funziona l'app, scritta da chi l'ha
+    sviluppata: non è una consulenza legale né un'informativa redatta da un legale. Prima di un uso
+    reale/pubblico dell'app andrebbe fatta rivedere da un professionista.
+  </div>
+
+  <h3>Cosa raccogliamo</h3>
+  <ul>
+    <li>Email e password (la password è salvata come hash sicuro, mai in chiaro)</li>
+    <li>Dati di auto-valutazione fisica che inserisci (piegamenti, trazioni, tempi di corsa, eventuali limitazioni fisiche)</li>
+    <li>Le tue risposte ai quiz e ai colloqui simulati, e lo storico delle conversazioni con l'assistente AI</li>
+    <li>Il bando che scegli e le tue preferenze di allenamento</li>
+  </ul>
+
+  <h3>Perché li raccogliamo</h3>
+  <p>Solo per far funzionare le funzionalità dell'app stessa: generare il tuo piano fisico, calcolare le
+     statistiche quiz, far ricordare all'assistente AI il contesto della conversazione. Non usiamo questi
+     dati per pubblicità, non li vendiamo, non li condividiamo con terzi al di fuori di quanto
+     strettamente necessario per far funzionare l'app (vedi sotto, Anthropic).</p>
+
+  <h3>Servizi esterni coinvolti</h3>
+  <p>Quando usi le funzionalità con l'assistente AI (bandi, coach fisico, colloquio), i tuoi messaggi
+     vengono inviati ad <strong>Anthropic</strong> (fornitore del modello Claude) per generare una
+     risposta. Anthropic elabora questi dati secondo le proprie condizioni di servizio; questa app non ha
+     controllo su quel trattamento oltre all'invio del messaggio necessario per ottenere una risposta.</p>
+
+  <h3>Cookie</h3>
+  <p>Usiamo un solo cookie tecnico di sessione, necessario per farti restare autenticato e per la
+     protezione CSRF dei form. Nessun cookie di profilazione o pubblicitario.</p>
+
+  <h3>I tuoi diritti</h3>
+  <p>Puoi cancellare il tuo account e tutti i dati associati, o scaricare una copia dei tuoi dati, in
+     qualsiasi momento dalla pagina <a href="{{ url_for('impostazioni.index') }}">Impostazioni</a>.</p>
+
+  <h3>Natura del progetto</h3>
+  <p>Questo è un prototipo dimostrativo, non un servizio commerciale con un'organizzazione dietro che
+     offra garanzie di livello enterprise su sicurezza, backup o continuità del servizio.</p>
+</div>
+{% endblock %}
