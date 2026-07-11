@@ -21,6 +21,42 @@ def privacy():
     return render_template("privacy.html")
 
 
+@bp.route("/chi-siamo")
+def chi_siamo():
+    return render_template("chi_siamo.html")
+
+
+@bp.route("/demo")
+def demo():
+    """Quiz di prova accessibile senza registrazione: 5 domande con correzione
+    lato client, per far provare l'app prima di creare un account."""
+    db = get_db()
+    domande = db.execute(
+        "SELECT * FROM quiz_questions WHERE corpo_specifico IS NULL ORDER BY RANDOM() LIMIT 5"
+    ).fetchall()
+    return render_template("demo.html", domande=domande)
+
+
+@bp.route("/scadenze")
+def scadenze():
+    """Bandi in scadenza nelle prossime settimane e aperture imminenti: pagina
+    pubblica, è il tipo di informazione che serve anche prima di registrarsi."""
+    db = get_db()
+    oggi = date.today()
+    rows = db.execute(
+        "SELECT * FROM bandi WHERE data_scadenza IS NOT NULL ORDER BY data_scadenza ASC"
+    ).fetchall()
+    imminenti = []
+    for b in rows:
+        giorni = (date.fromisoformat(b["data_scadenza"]) - oggi).days
+        if 0 <= giorni <= 30:
+            imminenti.append(dict(row=b, giorni=giorni))
+    previsti = db.execute(
+        "SELECT * FROM bandi WHERE stimato = 1 ORDER BY stima_periodo_da ASC"
+    ).fetchall()
+    return render_template("scadenze.html", imminenti=imminenti, previsti=previsti)
+
+
 @bp.route("/")
 def index():
     user = get_current_user()

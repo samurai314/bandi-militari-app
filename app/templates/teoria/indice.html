@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Teoria{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>📖 Pillole di teoria</h2>
+  <p style="font-size:0.9rem;">Ripassi brevi e mirati sugli argomenti che ricorrono nelle prove: leggili
+    prima dei quiz, o quando una materia ti va male.</p>
+</div>
+
+<div class="grid-3">
+  {% for materia, n in materie %}
+    <div class="card" style="margin-bottom:0;">
+      <h4 style="margin:0 0 0.4rem;">{{ materia }}</h4>
+      <p style="font-size:0.82rem;color:var(--testo-muto);">{{ n }} pillole di ripasso</p>
+      <a class="btn btn-secondary" href="{{ url_for('teoria.materia', materia=materia) }}">Leggi</a>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}

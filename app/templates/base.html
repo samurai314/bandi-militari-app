@@ -20,14 +20,18 @@
       {% if current_user %}
         <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
         <a href="{{ url_for('bandi.lista') }}">Bandi</a>
+        <a href="{{ url_for('main.scadenze') }}">Scadenze{% if n_scadenze_imminenti %} <span class="nav-badge">{{ n_scadenze_imminenti }}</span>{% endif %}</a>
         <a href="{{ url_for('quiz.home') }}">Quiz</a>
+        <a href="{{ url_for('teoria.indice') }}">Teoria</a>
         <a href="{{ url_for('fisico.piano') }}">Fisico</a>
         <a href="{{ url_for('colloquio.home') }}">Colloquio</a>
         <a href="{{ url_for('checklist.lista') }}">Checklist</a>
-        <a href="{{ url_for('agente.ask') }}">Chiedi sui bandi</a>
+        <a href="{{ url_for('agente.ask') }}">Assistente AI</a>
         <a href="{{ url_for('impostazioni.index') }}">Impostazioni</a>
         <a href="{{ url_for('auth.logout') }}">Esci</a>
       {% else %}
+        <a href="{{ url_for('main.scadenze') }}">Scadenze</a>
+        <a href="{{ url_for('main.demo') }}">Prova un quiz</a>
         <a href="{{ url_for('auth.login') }}">Accedi</a>
         <a href="{{ url_for('auth.register') }}">Registrati</a>
       {% endif %}
@@ -64,9 +68,11 @@
   </div>
 
   <div class="footer">
-    Prototipo dimostrativo — non è un canale ufficiale del Ministero della Difesa o dei Corpi militari.
+    Servizio indipendente di supporto alla preparazione — non è un canale ufficiale del Ministero della Difesa o dei Corpi militari.
     Verifica sempre bandi, scadenze e requisiti sulla Gazzetta Ufficiale e sui siti istituzionali prima di presentare domanda.
-    <br><a href="{{ url_for('main.privacy') }}">Privacy e trattamento dati</a>
+    <br>
+    <a href="{{ url_for('main.chi_siamo') }}">Chi siamo</a> ·
+    <a href="{{ url_for('main.privacy') }}">Privacy e trattamento dati</a>
   </div>
 
   {% if current_user and request.endpoint not in ('agente.ask',) %}

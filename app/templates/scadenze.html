@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Scadenze imminenti{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>⏰ Scadenze imminenti</h2>
+  <p style="font-size:0.85rem;">Bandi con domanda in scadenza nei prossimi 30 giorni e concorsi attesi
+    a breve. Verifica sempre date e requisiti sul bando ufficiale.</p>
+</div>
+
+{% if imminenti %}
+  {% for item in imminenti %}
+    {% set b = item.row %}
+    <div class="card" style="border-left: 4px solid {{ 'var(--rosso)' if item.giorni <= 7 else 'var(--oro, #c9962a)' }};">
+      <h3>{% if current_user %}<a href="{{ url_for('bandi.dettaglio', bando_id=b['id']) }}">{{ b['titolo'] }}</a>{% else %}{{ b['titolo'] }}{% endif %}</h3>
+      <p><span class="tag">{{ b['corpo'] }}</span></p>
+      <p style="font-size:1.05rem;">
+        {% if item.giorni == 0 %}🔴 <strong>Scade OGGI</strong> ({{ b['data_scadenza'] }})
+        {% elif item.giorni <= 7 %}🔴 Scade tra <strong>{{ item.giorni }} giorni</strong> ({{ b['data_scadenza'] }})
+        {% else %}🟡 Scade tra <strong>{{ item.giorni }} giorni</strong> ({{ b['data_scadenza'] }}){% endif %}
+      </p>
+      <p style="font-size:0.85rem;"><a href="{{ b['fonte_url'] }}" target="_blank" rel="noopener">Vai alla fonte ufficiale →</a></p>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="card"><p>Nessun bando indicizzato in scadenza nei prossimi 30 giorni.</p></div>
+{% endif %}
+
+{% if previsti %}
+<div class="card">
+  <h3>📅 Attesi prossimamente (stime su base storica)</h3>
+  {% for b in previsti %}
+    {% set finestra = finestra_prevista(b['stima_periodo_da'], b['stima_periodo_a']) %}
+    <p style="font-size:0.9rem;">
+      <strong>{{ b['titolo'] }}</strong>
+      {% if finestra %} — atteso tra {{ finestra }}{% endif %}
+    </p>
+  {% endfor %}
+  <p style="font-size:0.8rem;color:var(--testo-muto);">Le stime si basano sulla cadenza delle edizioni precedenti e non sono date ufficiali.</p>
+</div>
+{% endif %}
+
+{% if not current_user %}
+<div class="card" style="text-align:center;">
+  <p>Vuoi prepararti a uno di questi concorsi?</p>
+  <a class="btn" href="{{ url_for('auth.register') }}">Registrati gratis</a>
+  <a class="btn btn-outline" href="{{ url_for('main.demo') }}">Prova prima un quiz</a>
+</div>
+{% endif %}
+{% endblock %}

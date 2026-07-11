@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Prova un quiz{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Prova un quiz — senza registrarti</h2>
+  <p style="font-size:0.9rem;">5 domande di esempio dal nostro database. Rispondi e premi "Correggi":
+    vedrai subito risultato e spiegazioni.</p>
+</div>
+
+<form id="demo-form">
+  {% for q in domande %}
+    <div class="card demo-domanda" data-risposta="{{ q['risposta'] }}">
+      <p style="font-weight:600;">{{ loop.index }}. {{ q['domanda'] }} <span class="tag">{{ q['materia'] }}</span></p>
+      {% for lettera, opzione in [('A', q['opzione_a']), ('B', q['opzione_b']), ('C', q['opzione_c']), ('D', q['opzione_d'])] %}
+        <label class="answer-option"><input type="radio" name="demo-{{ loop.index0 }}-{{ q['id'] }}" value="{{ lettera }}" style="width:auto;display:inline;"> {{ lettera }}) {{ opzione }}</label>
+      {% endfor %}
+      <div class="demo-spiegazione" style="display:none;" data-testo="{{ q['spiegazione'] or '' }}"></div>
+    </div>
+  {% endfor %}
+  <button type="button" class="btn" id="correggi-btn">Correggi le mie risposte</button>
+</form>
+
+<div class="card" id="demo-risultato" style="display:none;text-align:center;">
+  <h3 id="demo-punteggio"></h3>
+  <p>Ti è piaciuto? Con un account gratuito hai centinaia di domande, simulazioni d'esame a tempo,
+     piano fisico personalizzato e assistente AI.</p>
+  <a class="btn" href="{{ url_for('auth.register') }}">Registrati gratis</a>
+</div>
+
+<script>
+(function () {
+  document.getElementById('correggi-btn').addEventListener('click', function () {
+    var giuste = 0;
+    var blocchi = document.querySelectorAll('.demo-domanda');
+    blocchi.forEach(function (blocco) {
+      var corretta = blocco.dataset.risposta;
+      var scelta = blocco.querySelector('input:checked');
+      blocco.querySelectorAll('.answer-option').forEach(function (opt) {
+        var input = opt.querySelector('input');
+        input.disabled = true;
+        if (input.value === corretta) {
+          opt.style.borderColor = 'var(--verde-brillante)';
+          opt.innerHTML += ' ✅';
+        } else if (scelta && input === scelta) {
+          opt.style.borderColor = 'var(--rosso)';
+          opt.innerHTML += ' ❌';
+        }
+      });
+      if (scelta && scelta.value === corretta) giuste += 1;
+      var sp = blocco.querySelector('.demo-spiegazione');
+      if (sp.dataset.testo) {
+        sp.textContent = sp.dataset.testo;
+        sp.className = 'disclaimer';
+        sp.style.display = 'block';
+      }
+    });
+    document.getElementById('demo-punteggio').textContent = 'Hai risposto correttamente a ' + giuste + ' domande su ' + blocchi.length;
+    document.getElementById('demo-risultato').style.display = 'block';
+    document.getElementById('demo-risultato').scrollIntoView({ behavior: 'smooth' });
+    this.style.display = 'none';
+  });
+})();
+</script>
+{% endblock %}

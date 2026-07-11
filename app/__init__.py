@@ -32,8 +32,9 @@ def create_app(test_config=None):
         from .seed_data import seed_if_empty
         seed_if_empty()
 
-    from .routes import auth, main, onboarding, bandi, quiz, fisico, colloquio, checklist, agente, impostazioni, coach
+    from .routes import auth, main, onboarding, bandi, quiz, fisico, colloquio, checklist, agente, impostazioni, coach, teoria
 
+    app.register_blueprint(teoria.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(main.bp)
     app.register_blueprint(onboarding.bp)
@@ -59,8 +60,24 @@ def create_app(test_config=None):
 
     @app.context_processor
     def inject_helpers():
+        from datetime import date, timedelta
+
+        from .db import get_db
         from .utils import get_current_user
-        return dict(current_user=get_current_user(), csrf_token=get_csrf_token, ai_enabled=app.config["AI_ENABLED"])
+
+        user = get_current_user()
+        n_scadenze = 0
+        if user:
+            oggi = date.today().isoformat()
+            tra_3_settimane = (date.today() + timedelta(days=21)).isoformat()
+            n_scadenze = get_db().execute(
+                "SELECT COUNT(*) AS c FROM bandi WHERE data_scadenza BETWEEN ? AND ?",
+                (oggi, tra_3_settimane),
+            ).fetchone()["c"]
+        return dict(
+            current_user=user, csrf_token=get_csrf_token, ai_enabled=app.config["AI_ENABLED"],
+            n_scadenze_imminenti=n_scadenze,
+        )
 
     @app.before_request
     def enforce_csrf():

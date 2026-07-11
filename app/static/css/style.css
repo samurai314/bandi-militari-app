@@ -73,6 +73,17 @@ a:hover { color: var(--verde-scuro); text-decoration: underline; }
 }
 .navbar nav a:hover { color: var(--verde); text-decoration: none; }
 
+.nav-badge {
+  display: inline-block;
+  background: var(--rosso);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.05rem 0.42rem;
+  vertical-align: super;
+}
+
 .nav-toggle {
   display: none;
   background: transparent;

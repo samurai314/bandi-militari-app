@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Chi siamo{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Chi siamo e come funziona questa app</h2>
+  <p>Questa piattaforma nasce con un obiettivo semplice: mettere in un unico posto tutto quello che
+     serve per prepararsi a un concorso militare italiano — scadenze reali, quiz per esercitarsi, un
+     piano fisico che si adatta a te e un assistente AI per le domande sui bandi.</p>
+
+  <h3>Cosa trovi qui</h3>
+  <ul>
+    <li><strong>Bandi e scadenze</strong> raccolti da fonti ufficiali (Ministero della Difesa, Arma dei
+        Carabinieri, Guardia di Finanza), sempre con il link alla fonte originale</li>
+    <li><strong>Quiz originali</strong> sulle materie tipiche delle prove (cultura generale, logica,
+        italiano, inglese, informatica e materie specifiche per corpo), con ripetizione dilazionata,
+        simulazioni d'esame a tempo e ripasso mirato sugli errori</li>
+    <li><strong>Piano fisico personalizzato</strong> con confronto rispetto alle soglie tipiche del tuo
+        concorso, sessioni guidate e coach AI</li>
+    <li><strong>Simulazione di colloquio</strong> con valutazione finale sulla chiarezza delle risposte</li>
+  </ul>
+
+  <h3>Trasparenza (quello che dovresti sapere)</h3>
+  <ul>
+    <li>Le domande dei quiz sono <strong>materiale originale</strong>: per i concorsi coperti non
+        esistono banche dati ufficiali liberamente scaricabili, quindi le nostre domande allenano sugli
+        argomenti tipici ma non riproducono i quesiti d'esame reali.</li>
+    <li>Le risposte dell'assistente AI citano sempre la fonte, ma vanno <strong>sempre verificate sul
+        bando ufficiale</strong> prima di prendere decisioni.</li>
+    <li>Il piano fisico è generato da regole automatiche, non da un preparatore o medico: in caso di
+        dubbi sulla tua condizione fisica rivolgiti a un professionista.</li>
+    <li>La simulazione di colloquio non è un test psicologico e non sostituisce la selezione
+        psicoattitudinale ufficiale.</li>
+  </ul>
+
+  <h3>Contatti e dati</h3>
+  <p>Per come trattiamo i tuoi dati, leggi la <a href="{{ url_for('main.privacy') }}">pagina privacy</a>.
+     Puoi esportare o cancellare i tuoi dati in autonomia dalle Impostazioni.</p>
+</div>
+{% endblock %}
