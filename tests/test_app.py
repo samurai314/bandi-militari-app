@@ -109,3 +109,80 @@ def test_esportazione_e_cancellazione_account(client, app):
 
     resp = client.get("/dashboard")
     assert resp.status_code == 302
+
+
+def test_pagine_pubbliche_nuove(client):
+    for percorso in ("/demo", "/scadenze", "/chi-siamo", "/privacy"):
+        resp = client.get(percorso)
+        assert resp.status_code == 200, percorso
+
+
+def test_dashboard_mostra_prontezza_e_piano_di_oggi(client):
+    registra(client, email="prontezza@test.com")
+    completa_onboarding(client)
+    resp = client.get("/dashboard")
+    html = resp.get_data(as_text=True)
+    assert "prontezza stimata" in html
+    assert "Cosa fare oggi" in html
+
+
+def test_teoria_indice_e_materia(client):
+    registra(client, email="teoria@test.com")
+    completa_onboarding(client)
+    resp = client.get("/teoria/")
+    assert resp.status_code == 200
+    resp = client.get("/teoria/Storia")
+    assert resp.status_code == 200
+    resp = client.get("/teoria/MateriaInesistente")
+    assert resp.status_code == 404
+
+
+def test_esame_con_penalita_e_salto(client, app):
+    registra(client, email="esame@test.com")
+    # bando 7 = Allievi Marescialli GdF -> formato con penalità 0.25
+    completa_onboarding(client, bando_id=7)
+
+    resp = client.get("/quiz/avvia?mode=esame")
+    assert resp.status_code == 302
+
+    resp = client.get("/quiz/domanda")
+    html = resp.get_data(as_text=True)
+    assert "Tempo totale rimanente" in html
+    assert "Salta (lascia in bianco)" in html
+    token = estrai_csrf(html)
+
+    # Salta la prima domanda (in bianco: 0 punti, nessuna penalità)
+    client.post("/quiz/domanda", data=dict(csrf_token=token))
+
+    with client.session_transaction() as sess:
+        stato = sess["quiz_state"]
+        assert stato["mode"] == "esame"
+        assert stato["penalita"] == 0.25
+        assert stato["punteggio"] == 0.0
+        assert stato["risposte"][0]["r"] is None
+
+    # Risposta sicuramente sbagliata o giusta: verifichiamo la matematica
+    resp = client.get("/quiz/domanda")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    client.post("/quiz/domanda", data=dict(risposta="A", csrf_token=token))
+
+    with client.session_transaction() as sess:
+        stato = sess["quiz_state"]
+        atteso = 1.0 if stato["risposte"][1]["ok"] else -0.25
+        assert abs(stato["punteggio"] - atteso) < 1e-9
+
+
+def test_ripasso_ai_pagina(client):
+    registra(client, email="ripasso@test.com")
+    completa_onboarding(client)
+    resp = client.get("/quiz/ripasso-ai")
+    assert resp.status_code == 200
+
+
+def test_soglie_fisiche_nel_piano(client):
+    registra(client, email="soglie@test.com")
+    completa_onboarding(client, bando_id=3)  # Marina -> soglie EMA
+    resp = client.get("/fisico/")
+    html = resp.get_data(as_text=True)
+    assert "Il tuo divario dalle soglie" in html
+    assert "Corsa 2000 m" in html
