@@ -2,6 +2,13 @@
 {% block title %}Statistiche quiz{% endblock %}
 {% block content %}
 
+{% if percentile is not none %}
+<div class="card" style="text-align:center;">
+  <h3>📈 Sei più preciso del {{ percentile }}% degli utenti attivi</h3>
+  <p style="font-size:0.8rem;color:var(--testo-muto);">Confronto sulla precisione complessiva tra chi ha risposto ad almeno 10 domande.</p>
+</div>
+{% endif %}
+
 {% if classifica %}
 <div class="card">
   <h2>🏆 Classifica settimanale (candidati per il tuo stesso bando)</h2>

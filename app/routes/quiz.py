@@ -376,7 +376,18 @@ def statistiche():
                 etichetta="Tu" if sei_tu else f"Candidato #{i}", sei_tu=sei_tu,
             ))
 
+    percentile = None
+    righe_prec = db.execute(
+        """SELECT user_id, CAST(SUM(correct_count) AS FLOAT) / SUM(attempts) AS prec
+           FROM quiz_progress GROUP BY user_id HAVING SUM(attempts) >= 10""",
+    ).fetchall()
+    mia = next((r["prec"] for r in righe_prec if r["user_id"] == user["id"]), None)
+    if mia is not None and len(righe_prec) >= 3:
+        sotto = sum(1 for r in righe_prec if r["prec"] <= mia)
+        percentile = round(100 * sotto / len(righe_prec))
+
     return render_template(
         "quiz/statistiche.html", stats_generiche=stats_generiche, stats_specifiche=stats_specifiche,
         domande_deboli=domande_deboli, n_errori=n_errori, classifica=classifica,
+        percentile=percentile,
     )

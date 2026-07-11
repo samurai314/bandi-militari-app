@@ -3,25 +3,43 @@
 {% block content %}
 <div class="card">
   <h2>Preparati al tuo concorso militare</h2>
-  <p>Piano fisico personalizzato, quiz di cultura generale con ripasso intelligente, checklist documenti e
-     bandi aggiornati da fonti ufficiali — in un solo posto.</p>
+  <p>Piano fisico personalizzato con coach AI, quiz con simulazioni d'esame a tempo, colloquio simulato
+     con valutazione, teoria, checklist documenti e bandi aggiornati da fonti ufficiali — in un solo posto.</p>
   <p>
-    <a class="btn" href="{{ url_for('auth.register') }}">Inizia ora</a>
+    <a class="btn" href="{{ url_for('auth.register') }}">Inizia ora — è gratis</a>
+    <a class="btn btn-secondary" href="{{ url_for('main.demo') }}">Prova un quiz senza registrarti</a>
     <a class="btn btn-outline" href="{{ url_for('auth.login') }}">Ho già un account</a>
   </p>
 </div>
+
 <div class="grid-3">
   <div class="card">
-    <h3>💪 Piano fisico</h3>
-    <p>Un motore a regole genera una progressione periodizzata in base al tuo livello di partenza.</p>
+    <h3>🎯 Quanto sei pronto</h3>
+    <p>Un punteggio unico che unisce quiz, fisico, colloquio e documenti, e ti dice ogni giorno cosa fare.</p>
   </div>
   <div class="card">
-    <h3>📚 Quiz</h3>
-    <p>Domande originali di cultura generale con ripasso a ripetizione dilazionata sui punti deboli.</p>
+    <h3>📚 Quiz e simulazioni d'esame</h3>
+    <p>Centinaia di domande originali, simulazione a tempo con penalità come nella prova vera, ripasso
+       AI sugli errori e materie specifiche per il tuo corpo.</p>
   </div>
   <div class="card">
-    <h3>📅 Bandi</h3>
-    <p>Scadenze reali raccolte da fonti ufficiali, sempre con link alla fonte e disclaimer.</p>
+    <h3>💪 Fisico con coach AI</h3>
+    <p>Piano su misura per il tuo livello, sessioni guidate con timer, video degli esercizi e confronto
+       con le soglie tipiche del tuo concorso.</p>
+  </div>
+  <div class="card">
+    <h3>🗣️ Colloquio simulato</h3>
+    <p>Un'intervista realistica con l'AI, domanda dopo domanda, con valutazione finale su ogni risposta.</p>
+  </div>
+  <div class="card">
+    <h3>⏰ Scadenze e bandi</h3>
+    <p>Bandi reali da fonti ufficiali, scadenze imminenti e finestre previste per i concorsi non ancora
+       usciti. <a href="{{ url_for('main.scadenze') }}">Guarda le scadenze →</a></p>
+  </div>
+  <div class="card">
+    <h3>🤖 Assistente AI</h3>
+    <p>Rispondi a qualsiasi domanda sui bandi (anche quelli non in archivio, con ricerca web) citando
+       sempre la fonte.</p>
   </div>
 </div>
 {% endblock %}
