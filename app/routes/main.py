@@ -5,6 +5,7 @@ from flask import Blueprint, current_app, redirect, render_template, url_for
 from ..db import get_db
 from ..fisico_engine import classifica_livello, genera_piano
 from ..quiz_engine import materia_stats
+from ..readiness import calcola_prontezza, piano_di_oggi
 from ..utils import BADGE_LABELS, get_current_user, login_required, onboarding_required
 
 bp = Blueprint("main", __name__)
@@ -59,11 +60,15 @@ def dashboard():
     ).fetchone()["c"]
 
     totale_sessioni_fisico = 0
+    piano_riepilogo = None
     if profile["piegamenti"] is not None:
         data_scadenza = bando["data_scadenza"] if bando else None
         piano_riepilogo = genera_piano(profile, data_scadenza)
         totale_sessioni_fisico = sum(len(w["giorni"]) for w in piano_riepilogo["settimane"])
     pct_fisico = round(100 * sessioni_fatte / totale_sessioni_fisico) if totale_sessioni_fisico else 0
+
+    prontezza = calcola_prontezza(db, user["id"], totale_sessioni_fisico)
+    azioni_oggi = piano_di_oggi(db, user["id"], settimana_fisico, piano_riepilogo)
 
     stats = materia_stats(db, user["id"], corpo_specifico=None)
     tentativi_totali = sum(s["tentativi"] for s in stats)
@@ -103,4 +108,6 @@ def dashboard():
         badge_labels=badge_labels,
         checklist_totale=checklist_totale,
         checklist_fatti=checklist_fatti,
+        prontezza=prontezza,
+        azioni_oggi=azioni_oggi,
     )

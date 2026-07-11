@@ -33,6 +33,41 @@
   {% endif %}
 </div>
 
+<div class="card">
+  <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;">
+    <div style="text-align:center;">
+      {{ macros.progress_ring(prontezza.totale, size=110) }}
+      <div style="font-size:0.8rem;color:var(--testo-muto);margin-top:0.2rem;">prontezza stimata</div>
+    </div>
+    <div style="flex:1;min-width:220px;">
+      <h3 style="margin:0 0 0.5rem;">🎯 Quanto sei pronto</h3>
+      {% for chiave, valore in prontezza.componenti.items() %}
+        <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.35rem;">
+          <span style="width:130px;font-size:0.82rem;">{{ prontezza.etichette[chiave] }}</span>
+          <div class="progress-bar" style="flex:1;"><div style="width:{{ valore }}%;"></div></div>
+          <span style="width:40px;font-size:0.82rem;text-align:right;">{{ valore }}%</span>
+        </div>
+      {% endfor %}
+      <p style="font-size:0.8rem;color:var(--testo-muto);margin:0.5rem 0 0;">
+        Il tuo punto più debole ora: <strong>{{ prontezza.piu_debole_label }}</strong>.
+        Stima motivazionale basata sui dati dell'app, non una previsione dell'esito del concorso.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% if azioni_oggi %}
+<div class="card">
+  <h3>📅 Cosa fare oggi</h3>
+  {% for a in azioni_oggi %}
+    <div class="checklist-item">
+      <span>{{ a.emoji }}</span>
+      <a href="{{ url_for(a.url_endpoint, **(a.url_kwargs or {})) }}">{{ a.testo }}</a>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <div class="grid-3">
   <div class="card" style="text-align:center;">
     <h3>💪 Fisico</h3>

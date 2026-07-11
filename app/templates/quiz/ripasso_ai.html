@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Ripasso AI{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>🤖 Ripasso AI sui tuoi errori</h2>
+  <p style="font-size:0.9rem;">
+    {% if n_errori > 0 %}
+      L'assistente prepara una mini-lezione sui concetti dietro le tue ultime {{ n_errori }} domande sbagliate:
+      spiegazioni, collegamenti e trucchi per ricordare.
+    {% else %}
+      Non hai errori recenti da ripassare. Fai qualche quiz e torna qui!
+    {% endif %}
+  </p>
+  {% if ai_enabled and n_errori > 0 %}
+    <button class="btn" id="genera-btn">Genera la mia lezione di ripasso</button>
+  {% elif not ai_enabled %}
+    <div class="disclaimer">Assistente AI non configurato in questo ambiente.</div>
+  {% endif %}
+  <p style="margin-top:0.6rem;"><a href="{{ url_for('quiz.home') }}">← Torna ai quiz</a></p>
+</div>
+
+<div class="card" id="lezione-card" style="display:none;">
+  <h3>La tua lezione</h3>
+  <p id="lezione-testo" style="white-space:pre-line;"></p>
+</div>
+
+{% if ai_enabled and n_errori > 0 %}
+<script>
+(function () {
+  var btn = document.getElementById('genera-btn');
+  var card = document.getElementById('lezione-card');
+  var testo = document.getElementById('lezione-testo');
+  var csrfToken = {{ csrf_token() | tojson }};
+
+  btn.addEventListener('click', function () {
+    btn.disabled = true;
+    btn.textContent = 'Sto preparando la lezione...';
+    card.style.display = 'block';
+    testo.textContent = '';
+
+    var body = new URLSearchParams();
+    body.set('csrf_token', csrfToken);
+
+    fetch({{ url_for('quiz.ripasso_ai_genera') | tojson }}, { method: 'POST', body: body })
+      .then(function (response) {
+        var reader = response.body.getReader();
+        var decoder = new TextDecoder();
+        var grezzo = '';
+        function leggi() {
+          return reader.read().then(function (result) {
+            if (result.done) {
+              btn.textContent = 'Genera di nuovo';
+              btn.disabled = false;
+              return;
+            }
+            grezzo += decoder.decode(result.value, { stream: true });
+            testo.textContent = grezzo
+              .replace(/\*\*(.+?)\*\*/g, '"$1"');
+            return leggi();
+          });
+        }
+        return leggi();
+      })
+      .catch(function () {
+        testo.textContent = 'Errore di connessione. Riprova.';
+        btn.disabled = false;
+      });
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

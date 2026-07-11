@@ -24,6 +24,45 @@ def corpo_specifico_per_bando(corpo_bando):
     return None
 
 
+# Formati della simulazione d'esame per corpo: numero di quesiti, tempo totale
+# e penalità per risposta errata. Sono formati INDICATIVI ispirati alle prove
+# delle edizioni recenti (che possono cambiare di anno in anno): il formato
+# esatto va sempre verificato sul bando specifico.
+FORMATI_ESAME = {
+    "Carabinieri": dict(
+        n_domande=60, minuti=45, penalita=0.0,
+        nota="Formato ispirato alla prova scritta Allievi Carabinieri (quesiti a risposta multipla a tempo, senza penalità).",
+    ),
+    "Guardia di Finanza": dict(
+        n_domande=60, minuti=60, penalita=0.25,
+        nota="Formato ispirato alle prove GdF recenti: penalità di 0,25 punti per ogni risposta errata, 0 per le omesse.",
+    ),
+    "Esercito/Marina/Aeronautica": dict(
+        n_domande=50, minuti=50, penalita=0.0,
+        nota="Formato ispirato alle prove culturali VFI/accademie (quesiti a risposta multipla a tempo).",
+    ),
+    None: dict(
+        n_domande=50, minuti=50, penalita=0.0,
+        nota="Formato generico di simulazione a tempo.",
+    ),
+}
+
+
+def pick_questions_esame(db, corpo_tag, n):
+    """Per l'esame mescola domande del corpo dell'utente e di cultura generale."""
+    if corpo_tag:
+        return db.execute(
+            """SELECT * FROM quiz_questions
+               WHERE corpo_specifico IS NULL OR corpo_specifico = ?
+               ORDER BY RANDOM() LIMIT ?""",
+            (corpo_tag, n),
+        ).fetchall()
+    return db.execute(
+        "SELECT * FROM quiz_questions WHERE corpo_specifico IS NULL ORDER BY RANDOM() LIMIT ?",
+        (n,),
+    ).fetchall()
+
+
 def review(repetitions, interval_days, ease_factor, correct):
     """Calcola il nuovo stato di ripetizione dopo una risposta.
 

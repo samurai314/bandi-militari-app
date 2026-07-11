@@ -16,9 +16,20 @@
   <p>
     <a class="btn" href="{{ url_for('quiz.avvia', mode='prova') }}">✅ Quiz prova (correzione immediata)</a>
     <a class="btn btn-secondary" href="{{ url_for('quiz.avvia', mode='timed') }}">⏱️ Quiz a tempo (15 domande)</a>
-    <a class="btn btn-secondary" href="{{ url_for('quiz.avvia', mode='simulation') }}">🎯 Simulazione bando completa (30 domande)</a>
     <a class="btn btn-outline" href="{{ url_for('quiz.statistiche') }}">📊 Statistiche</a>
+    <a class="btn btn-outline" href="{{ url_for('quiz.ripasso_ai') }}">🤖 Ripasso AI sugli errori</a>
   </p>
+</div>
+
+<div class="card" style="border-color: var(--verde-brillante);">
+  <h3>🎯 Simulazione d'esame realistica</h3>
+  <p style="font-size:0.9rem;">
+    {{ formato_esame.n_domande }} quesiti in {{ formato_esame.minuti }} minuti con tempo totale
+    {% if formato_esame.penalita %} e penalità di {{ formato_esame.penalita }} punti per ogni risposta errata (le omesse valgono 0){% endif %},
+    con possibilità di saltare le domande, come in una prova vera.
+  </p>
+  <p style="font-size:0.8rem;color:var(--testo-muto);">{{ formato_esame.nota }} Il formato esatto va verificato sul bando specifico.</p>
+  <a class="btn" href="{{ url_for('quiz.avvia', mode='esame') }}">Inizia la simulazione d'esame</a>
   {% if n_errori > 0 %}
     <p><a class="btn" style="background:var(--rosso);" href="{{ url_for('quiz.avvia', mode='errori') }}">🔁 Ripassa i tuoi errori ({{ n_errori }})</a></p>
   {% endif %}

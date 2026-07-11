@@ -2,22 +2,39 @@
 {% block title %}Risultati quiz{% endblock %}
 {% block content %}
 <div class="card">
-  <h2>Risultato: {{ state.corrette }} / {{ state.question_ids|length }}</h2>
+  {% if state.mode == 'esame' %}
+    <h2>Punteggio esame: {{ '%.2f' | format(state.punteggio) }} / {{ state.question_ids|length }}</h2>
+    <p style="font-size:0.9rem;">
+      ✅ {{ state.corrette }} corrette ·
+      ❌ {{ (state.risposte | selectattr('r') | list | length) - state.corrette }} errate{% if state.penalita %} (−{{ state.penalita }} ciascuna){% endif %} ·
+      ⬜ {{ (state.risposte | rejectattr('r') | list | length) + non_risposte }} in bianco
+    </p>
+    {% if non_risposte > 0 %}
+      <div class="disclaimer">⏱️ Il tempo è scaduto: {{ non_risposte }} domande non sono state raggiunte e contano come non risposte.</div>
+    {% endif %}
+  {% else %}
+    <h2>Risultato: {{ state.corrette }} / {{ state.question_ids|length }}</h2>
+  {% endif %}
   <div class="progress-bar"><div style="width:{{ (100*state.corrette/(state.question_ids|length)) if state.question_ids else 0 }}%"></div></div>
   <p>
     <a class="btn" href="{{ url_for('quiz.home') }}">Torna ai quiz</a>
     <a class="btn btn-outline" href="{{ url_for('quiz.statistiche') }}">Vedi statistiche</a>
+    {% if ai_enabled and (state.corrette < state.risposte|length) %}
+      <a class="btn btn-secondary" href="{{ url_for('quiz.ripasso_ai') }}">🤖 Genera un ripasso AI sui miei errori</a>
+    {% endif %}
   </p>
 </div>
 
-{% for r in state.risposte %}
+{% for r in dettagli %}
   <div class="card" style="margin-bottom:0.6rem;">
-    <p style="font-weight:600;">{{ r.domanda }}</p>
+    <p style="font-weight:600;">{{ r.domanda }} <span class="tag">{{ r.materia }}</span></p>
     <p style="font-size:0.9rem;">
       {% if r.corretto %}
         ✅ Corretto ({{ r.risposta_giusta }})
+      {% elif r.risposta_data %}
+        ❌ Hai risposto {{ r.risposta_data }}, la risposta corretta era {{ r.risposta_giusta }}
       {% else %}
-        ❌ Hai risposto {{ r.risposta_data or '—' }}, la risposta corretta era {{ r.risposta_giusta }}
+        ⬜ Lasciata in bianco — la risposta corretta era {{ r.risposta_giusta }}
       {% endif %}
     </p>
     {% if r.spiegazione %}<p style="font-size:0.85rem;color:#666;">{{ r.spiegazione }}</p>{% endif %}

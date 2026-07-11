@@ -69,6 +69,13 @@ della persona, non dire se "supererebbe" o meno una selezione reale.
 Rispondi sempre in italiano, senza markdown pesante (niente intestazioni, al massimo elenchi puntati
 semplici nella valutazione finale)."""
 
+SYSTEM_PROMPT_RIPASSO = """Sei un tutor di preparazione ai concorsi militari italiani. Ricevi un elenco
+di domande a cui lo studente ha risposto in modo sbagliato. Scrivi una mini-lezione di ripasso in
+italiano che spieghi in modo chiaro e memorizzabile i concetti dietro quelle domande: raggruppa per
+argomento, spiega il perché della risposta corretta e aggiungi, dove utile, un trucco mnemonico o un
+collegamento che aiuti a ricordare. Concludi con 2-3 punti chiave da fissare. Massimo 350 parole,
+niente markdown pesante (al massimo elenchi puntati semplici)."""
+
 TRIGGER_VALUTAZIONE_COLLOQUIO = (
     "Per favore concludi il colloquio e dammi una valutazione dettagliata di ogni mia risposta."
 )
