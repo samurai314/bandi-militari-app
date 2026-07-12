@@ -2,6 +2,38 @@
 {% block title %}Statistiche quiz{% endblock %}
 {% block content %}
 
+{% if punti_grafico %}
+<div class="card">
+  <h3>📉 Il tuo andamento (precisione nelle ultime sessioni)</h3>
+  <svg viewBox="-6 -6 312 72" style="width:100%;max-width:420px;height:auto;">
+    <polyline points="{{ punti_grafico }}" fill="none" stroke="var(--verde)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    {% for v in andamento %}
+      <circle cx="{{ (loop.index0 * (300 / (andamento|length - 1))) | round }}" cy="{{ (60 - v * 0.6) | round }}" r="3" fill="var(--verde)"/>
+    {% endfor %}
+  </svg>
+  <p style="font-size:0.8rem;color:var(--testo-muto);">
+    Dalla sessione più vecchia alla più recente: {{ andamento | join('% → ') }}%
+  </p>
+</div>
+{% endif %}
+
+{% if ultime_sessioni %}
+<div class="card">
+  <h3>🗓️ Le tue ultime sessioni</h3>
+  <table>
+    <tr><th>Data</th><th>Modalità</th><th>Materia</th><th>Risultato</th></tr>
+    {% for s in ultime_sessioni %}
+      <tr>
+        <td>{{ s['timestamp'][:10] }}</td>
+        <td>{{ s['mode'] }}</td>
+        <td>{{ s['materia'] or 'miste' }}</td>
+        <td>{{ s['correct'] }}/{{ s['total'] }} ({{ (100 * s['correct'] / s['total']) | round | int if s['total'] else 0 }}%)</td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
 {% if percentile is not none %}
 <div class="card" style="text-align:center;">
   <h3>📈 Sei più preciso del {{ percentile }}% degli utenti attivi</h3>

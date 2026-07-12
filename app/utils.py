@@ -70,10 +70,14 @@ def onboarding_required(view):
 
 
 BADGE_LABELS = {
+    "streak_3": "3 giorni di fila",
     "streak_10": "10 giorni di fila",
     "streak_30": "30 giorni di fila",
     "quiz_50": "50 risposte corrette",
+    "quiz_100": "100 risposte corrette",
     "quiz_200": "200 risposte corrette",
+    "primo_esame": "Prima simulazione d'esame",
+    "primo_test_fisico": "Primo test fisico registrato",
 }
 
 
@@ -105,6 +109,8 @@ def touch_streak(db, user_id):
         (current, longest, today.isoformat(), user_id),
     )
 
+    if current == 3:
+        award_badge(db, user_id, "streak_3")
     if current == 10:
         award_badge(db, user_id, "streak_10")
     if current == 30:
@@ -146,6 +152,8 @@ def check_quiz_badges(db, user_id):
     ).fetchone()["c"]
     if total_correct >= 50:
         award_badge(db, user_id, "quiz_50")
+    if total_correct >= 100:
+        award_badge(db, user_id, "quiz_100")
     if total_correct >= 200:
         award_badge(db, user_id, "quiz_200")
     db.commit()

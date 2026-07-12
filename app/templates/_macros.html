@@ -3,11 +3,11 @@
 {% set circ = 2 * 3.14159265 * r %}
 {% set offset = circ * (1 - (pct / 100)) %}
 <svg viewBox="0 0 76 76" width="{{ size }}" height="{{ size }}" class="progress-ring">
-  <circle cx="38" cy="38" r="{{ r }}" fill="none" stroke="rgba(20,30,15,0.08)" stroke-width="7"/>
+  <circle cx="38" cy="38" r="{{ r }}" fill="none" stroke="var(--bordo)" stroke-width="7"/>
   <circle cx="38" cy="38" r="{{ r }}" fill="none" stroke="{{ colore }}" stroke-width="7"
     stroke-linecap="round" stroke-dasharray="{{ circ }}" stroke-dashoffset="{{ offset }}"
     transform="rotate(-90 38 38)"/>
-  <text x="38" y="43" text-anchor="middle" font-size="18" font-weight="700" fill="#1b2117">{{ pct }}%</text>
+  <text x="38" y="43" text-anchor="middle" font-size="18" font-weight="700" fill="var(--testo)">{{ pct }}%</text>
 </svg>
 {% endmacro %}
 

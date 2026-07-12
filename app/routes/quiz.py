@@ -69,6 +69,9 @@ def _termina_sessione(db, user, state):
         "INSERT INTO quiz_sessions_log (user_id, mode, materia, total, correct, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
         (user["id"], state["mode"], state["materia"], len(state["question_ids"]), state["corrette"], datetime.utcnow().isoformat()),
     )
+    if state["mode"] == "esame":
+        from ..utils import award_badge
+        award_badge(db, user["id"], "primo_esame")
     db.commit()
     touch_streak(db, user["id"])
     check_quiz_badges(db, user["id"])
@@ -386,8 +389,32 @@ def statistiche():
         sotto = sum(1 for r in righe_prec if r["prec"] <= mia)
         percentile = round(100 * sotto / len(righe_prec))
 
+    ultime_sessioni = db.execute(
+        "SELECT * FROM quiz_sessions_log WHERE user_id = ? ORDER BY id DESC LIMIT 15",
+        (user["id"],),
+    ).fetchall()
+
+    # Andamento: precisione % delle ultime 12 sessioni (dalla più vecchia), per
+    # il piccolo grafico a linea nelle statistiche.
+    andamento_rows = db.execute(
+        """SELECT correct, total FROM quiz_sessions_log
+           WHERE user_id = ? AND total > 0 ORDER BY id DESC LIMIT 12""",
+        (user["id"],),
+    ).fetchall()
+    andamento = [round(100 * r["correct"] / r["total"]) for r in reversed(andamento_rows)]
+
+    punti_grafico = ""
+    if len(andamento) >= 2:
+        larghezza, altezza = 300, 60
+        passo = larghezza / (len(andamento) - 1)
+        punti_grafico = " ".join(
+            f"{round(i * passo)},{round(altezza - (v / 100) * altezza)}"
+            for i, v in enumerate(andamento)
+        )
+
     return render_template(
         "quiz/statistiche.html", stats_generiche=stats_generiche, stats_specifiche=stats_specifiche,
         domande_deboli=domande_deboli, n_errori=n_errori, classifica=classifica,
-        percentile=percentile,
+        percentile=percentile, ultime_sessioni=ultime_sessioni,
+        andamento=andamento, punti_grafico=punti_grafico,
     )

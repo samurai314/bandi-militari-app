@@ -85,6 +85,8 @@ def registra_test():
                 f"UPDATE profiles SET {set_clause}, non_lo_so = 0 WHERE user_id = ?",
                 (*aggiornamenti.values(), user["id"]),
             )
+        from ..utils import award_badge
+        award_badge(db, user["id"], "primo_test_fisico")
         db.commit()
         touch_streak(db, user["id"])
         flash("Test registrato: piano e soglie sono stati ricalibrati sui nuovi valori.", "success")

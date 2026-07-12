@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Errore {{ codice }}{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;margin:2rem auto;text-align:center;">
+  <p style="font-size:3rem;margin:0;">{{ emoji }}</p>
+  <h2>{{ titolo }}</h2>
+  <p style="font-size:0.92rem;">{{ messaggio }}</p>
+  <p>
+    <a class="btn" href="{{ url_for('main.index') }}">Torna alla home</a>
+    {% if codice == 500 %}
+      <a class="btn btn-outline" href="{{ url_for('main.feedback') }}">Segnalaci il problema</a>
+    {% endif %}
+  </p>
+</div>
+{% endblock %}

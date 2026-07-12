@@ -22,6 +22,30 @@
   --ombra: rgba(31, 40, 20, 0.08);
 }
 
+/* Tema scuro: attivato dal toggle 🌙 (attributo data-theme sul <html>).
+   Le stesse variabili, ricalibrate per sfondi scuri. */
+[data-theme="dark"] {
+  --bg: #131711;
+  --bg-elevato: #1c231a;
+  --bg-card: #1c231a;
+  --bordo: rgba(255, 255, 255, 0.09);
+  --bordo-forte: rgba(63, 181, 89, 0.5);
+  --verde-scuro: #7fd492;
+  --verde: #3fb559;
+  --verde-brillante: #4ecb6a;
+  --ambra: #e0a93e;
+  --ambra-scuro: #c98a1f;
+  --testo: #e6e9e2;
+  --testo-attenuato: #a8b0a2;
+  --testo-muto: #7c8476;
+  --rosso: #e06052;
+  --rosso-bg: rgba(224, 96, 82, 0.14);
+  --verde-badge-bg: rgba(63, 181, 89, 0.16);
+  --ambra-badge-bg: rgba(224, 169, 62, 0.15);
+  --bianco: #1c231a;
+  --ombra: rgba(0, 0, 0, 0.4);
+}
+
 * { box-sizing: border-box; }
 
 body {

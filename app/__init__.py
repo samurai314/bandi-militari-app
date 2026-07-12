@@ -114,6 +114,22 @@ def create_app(test_config=None):
             n_scadenze_imminenti=n_scadenze,
         )
 
+    from flask import render_template
+
+    @app.errorhandler(404)
+    def pagina_non_trovata(e):
+        return render_template(
+            "errore.html", codice=404, emoji="🧭", titolo="Pagina non trovata",
+            messaggio="La pagina che cerchi non esiste o è stata spostata.",
+        ), 404
+
+    @app.errorhandler(500)
+    def errore_interno(e):
+        return render_template(
+            "errore.html", codice=500, emoji="🔧", titolo="Qualcosa è andato storto",
+            messaggio="Errore imprevisto da parte nostra. Riprova tra qualche istante; se persiste, segnalacelo.",
+        ), 500
+
     @app.before_request
     def enforce_csrf():
         if request.method == "POST":

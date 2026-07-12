@@ -11,11 +11,25 @@
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="description" content="{% block descrizione %}Preparazione ai concorsi militari italiani: bandi e scadenze reali, quiz con simulazioni d'esame, piano fisico personalizzato con coach AI e colloquio simulato.{% endblock %}">
+  <script>
+    // Applica subito il tema salvato, prima del rendering (evita il lampo bianco).
+    (function () {
+      try {
+        if (localStorage.getItem('tema') === 'dark') {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <div class="navbar">
     <div class="brand">🎖️ Preparazione Bandi Militari</div>
-    <button class="nav-toggle" id="nav-toggle" aria-label="Apri menu" aria-expanded="false">☰</button>
+    <div style="display:flex;gap:0.4rem;align-items:center;">
+      <button class="nav-toggle" id="tema-toggle" aria-label="Cambia tema" style="display:block;">🌙</button>
+      <button class="nav-toggle" id="nav-toggle" aria-label="Apri menu" aria-expanded="false">☰</button>
+    </div>
     <nav id="site-nav">
       {% if current_user %}
         <a href="{{ url_for('main.dashboard') }}">Dashboard</a>
@@ -45,6 +59,23 @@
       toggle.addEventListener('click', function () {
         var isOpen = nav.classList.toggle('open');
         toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+
+      var tema = document.getElementById('tema-toggle');
+      function aggiornaIcona() {
+        tema.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+      }
+      aggiornaIcona();
+      tema.addEventListener('click', function () {
+        var scuro = document.documentElement.getAttribute('data-theme') === 'dark';
+        if (scuro) {
+          document.documentElement.removeAttribute('data-theme');
+          try { localStorage.setItem('tema', 'light'); } catch (e) {}
+        } else {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          try { localStorage.setItem('tema', 'dark'); } catch (e) {}
+        }
+        aggiornaIcona();
       });
     })();
 
