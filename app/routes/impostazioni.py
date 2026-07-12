@@ -51,7 +51,7 @@ def aggiorna_fisico():
     non_lo_so = 1 if request.form.get("non_lo_so") else 0
     db.execute(
         """UPDATE profiles SET
-            sport = ?, sport_anni = ?, livello = ?,
+            sport = ?, sport_anni = ?, livello = ?, sesso = ?,
             piegamenti = ?, trazioni = ?, corsa_distanza = ?, corsa_tempo_sec = ?,
             non_lo_so = ?, limitazioni = ?
            WHERE user_id = ?""",
@@ -59,6 +59,7 @@ def aggiorna_fisico():
             request.form.get("sport") or None,
             request.form.get("sport_anni") or None,
             request.form.get("livello") or None,
+            request.form.get("sesso") or None,
             request.form.get("piegamenti") or None,
             request.form.get("trazioni") or None,
             request.form.get("corsa_distanza") or None,

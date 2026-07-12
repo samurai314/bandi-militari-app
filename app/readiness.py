@@ -99,20 +99,31 @@ def piano_di_oggi(db, user_id, settimana_fisico, piano):
         (user_id, f"{oggi}%"),
     ).fetchone()
     if not allenato_oggi and piano:
-        settimana = min(settimana_fisico, piano["n_settimane"])
-        fatte = {
-            r["giorno_indice"]
+        fatte_tutte = {
+            (r["settimana"], r["giorno_indice"])
             for r in db.execute(
-                "SELECT giorno_indice FROM workout_log WHERE user_id = ? AND settimana = ?",
-                (user_id, settimana),
+                "SELECT settimana, giorno_indice FROM workout_log WHERE user_id = ?",
+                (user_id,),
             ).fetchall()
         }
-        giorni = piano["settimane"][settimana - 1]["giorni"]
-        prossimo = next((i for i in range(1, len(giorni) + 1) if i not in fatte), None)
-        if prossimo:
+        # Riparti dalla prima settimana con sessioni arretrate, non da quella
+        # puramente temporale: se hai saltato, prima recuperi, poi avanzi.
+        limite = min(settimana_fisico, piano["n_settimane"])
+        suggerita = None
+        for settimana in range(1, limite + 1):
+            giorni = piano["settimane"][settimana - 1]["giorni"]
+            prossimo = next(
+                (i for i in range(1, len(giorni) + 1) if (settimana, i) not in fatte_tutte), None
+            )
+            if prossimo:
+                suggerita = (settimana, prossimo, giorni[prossimo - 1]["tipo"])
+                break
+        if suggerita:
+            settimana, prossimo, tipo = suggerita
+            arretrata = " (in recupero)" if settimana < limite else ""
             azioni.append(dict(
                 emoji="💪",
-                testo=f"Sessione di allenamento: settimana {settimana}, giorno {prossimo} ({giorni[prossimo - 1]['tipo']})",
+                testo=f"Sessione di allenamento: settimana {settimana}, giorno {prossimo} ({tipo}){arretrata}",
                 url_endpoint="fisico.piano",
             ))
 

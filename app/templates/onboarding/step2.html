@@ -16,6 +16,14 @@
 
   <form method="post">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label>Sesso (serve solo per confrontarti con le soglie giuste: i bandi hanno parametri diversi per uomini e donne)</label>
+    <select name="sesso">
+      <option value="">Preferisco non indicarlo (userò le soglie uomo)</option>
+      <option value="M">Uomo</option>
+      <option value="F">Donna</option>
+    </select>
+
     <label>Sport praticato (se nessuno, lascia vuoto)</label>
     <input type="text" name="sport" placeholder="es. corsa, calcio, palestra...">
 

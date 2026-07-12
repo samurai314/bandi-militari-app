@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Registra un test{% endblock %}
+{% block content %}
+<div class="card">
+  <p><a href="{{ url_for('fisico.piano') }}">← Torna al piano</a></p>
+  <h2>📏 Registra un test fisico</h2>
+  {% if primo_test %}
+    <div class="disclaimer" style="border-left-color: var(--verde-brillante);">
+      È il tuo primo test: segui la settimana di test guidato del piano, poi inserisci qui i risultati.
+      Da quel momento il piano si calibrerà sui tuoi valori reali.
+    </div>
+  {% else %}
+    <p style="font-size:0.9rem;">Inserisci i risultati del tuo ultimo test: il piano, il livello e il
+      confronto con le soglie si <strong>ricalibrano automaticamente</strong> sui nuovi valori.
+      Compila solo i campi che hai testato.</p>
+  {% endif %}
+
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label>Piegamenti (massimo consecutivo){% if profile['piegamenti'] is not none %} — attuale: {{ profile['piegamenti'] }}{% endif %}</label>
+    <input type="number" name="piegamenti" min="0" max="200" placeholder="es. 25">
+
+    <label>Trazioni (massimo consecutivo){% if profile['trazioni'] is not none %} — attuale: {{ profile['trazioni'] }}{% endif %}</label>
+    <input type="number" name="trazioni" min="0" max="100" placeholder="es. 6">
+
+    <label>Corsa: distanza del test</label>
+    <select name="corsa_distanza">
+      <option value="">Non ho testato la corsa</option>
+      <option value="1000">1000 m</option>
+      <option value="2000" selected>2000 m</option>
+      <option value="3000">3000 m</option>
+    </select>
+
+    <label>Corsa: tempo impiegato (in secondi){% if profile['corsa_tempo_sec'] is not none %} — attuale: {{ profile['corsa_tempo_sec'] }}s{% endif %}</label>
+    <input type="number" name="corsa_tempo_sec" min="0" max="7200" placeholder="es. 570 (= 9 minuti e 30)">
+
+    <label>Note (facoltative)</label>
+    <input type="text" name="note" placeholder="es. test fatto in pista, vento forte...">
+
+    <button class="btn" type="submit">Salva e ricalibra il piano</button>
+  </form>
+</div>
+{% endblock %}

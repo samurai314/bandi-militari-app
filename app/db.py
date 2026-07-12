@@ -154,6 +154,17 @@ MIGRAZIONI = [
     "ALTER TABLE quiz_questions ADD COLUMN fonte TEXT DEFAULT 'originale'",
     "ALTER TABLE quiz_questions ADD COLUMN corpo_specifico TEXT",
     "ALTER TABLE profiles ADD COLUMN settimane_preferite INTEGER",
+    "ALTER TABLE profiles ADD COLUMN sesso TEXT",
+    """CREATE TABLE IF NOT EXISTS test_fisici (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        data TEXT NOT NULL,
+        piegamenti INTEGER,
+        trazioni INTEGER,
+        corsa_distanza INTEGER,
+        corsa_tempo_sec INTEGER,
+        note TEXT
+    )""",
 ]
 
 

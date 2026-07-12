@@ -186,3 +186,84 @@ def test_soglie_fisiche_nel_piano(client):
     html = resp.get_data(as_text=True)
     assert "Il tuo divario dalle soglie" in html
     assert "Corsa 2000 m" in html
+
+
+def test_registra_test_ricalibra_il_profilo(client, app):
+    registra(client, email="ricalibra@test.com")
+    completa_onboarding(client, bando_id=3)
+
+    resp = client.get("/fisico/test")
+    assert resp.status_code == 200
+    token = estrai_csrf(resp.get_data(as_text=True))
+    resp = client.post(
+        "/fisico/test",
+        data=dict(piegamenti=40, trazioni=10, corsa_distanza=2000,
+                  corsa_tempo_sec=500, csrf_token=token),
+    )
+    assert resp.status_code == 302
+
+    with app.app_context():
+        from app.db import get_db
+        db = get_db()
+        p = db.execute(
+            """SELECT p.piegamenti, p.trazioni, p.corsa_tempo_sec FROM profiles p
+               JOIN users u ON u.id = p.user_id WHERE u.email = ?""",
+            ("ricalibra@test.com",),
+        ).fetchone()
+        assert p["piegamenti"] == 40
+        assert p["trazioni"] == 10
+        assert p["corsa_tempo_sec"] == 500
+        assert db.execute("SELECT COUNT(*) c FROM test_fisici").fetchone()["c"] >= 1
+
+    # Con questi valori il livello deve salire da principiante a intermedio
+    resp = client.get("/fisico/")
+    assert "intermedio" in resp.get_data(as_text=True)
+
+
+def test_settimana_test_guidato_senza_dati(client):
+    registra(client, email="guidato@test.com")
+    # onboarding senza dati fisici e con "non lo so"
+    resp = client.get("/onboarding/step1")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    client.post("/onboarding/step1", data=dict(bando_id=3, csrf_token=token))
+    resp = client.get("/onboarding/step2")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    client.post("/onboarding/step2", data=dict(non_lo_so=1, livello="principiante", csrf_token=token))
+    resp = client.get("/onboarding/step3")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    client.post("/onboarding/step3", data=dict(contesto="corpo_libero", giorni_settimana=4, csrf_token=token))
+
+    resp = client.get("/fisico/")
+    html = resp.get_data(as_text=True)
+    assert "Test guidato" in html
+    assert "australiane" in html  # variante senza sbarra per corpo libero
+
+
+def test_soglie_differenziate_per_sesso(client):
+    registra(client, email="soglief@test.com")
+    resp = client.get("/onboarding/step1")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    client.post("/onboarding/step1", data=dict(bando_id=3, csrf_token=token))
+    resp = client.get("/onboarding/step2")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    client.post(
+        "/onboarding/step2",
+        data=dict(sesso="F", piegamenti=10, trazioni=1, corsa_distanza=2000,
+                  corsa_tempo_sec=700, livello="principiante", csrf_token=token),
+    )
+    resp = client.get("/onboarding/step3")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    client.post("/onboarding/step3", data=dict(contesto="entrambi", giorni_settimana=4, csrf_token=token))
+
+    resp = client.get("/fisico/")
+    html = resp.get_data(as_text=True)
+    assert "valori tipici donna" in html
+
+
+def test_piano_include_riscaldamento_e_recupero(client):
+    registra(client, email="warmup@test.com")
+    completa_onboarding(client, bando_id=3)
+    resp = client.get("/fisico/")
+    html = resp.get_data(as_text=True)
+    assert "Riscaldamento: 8-10" in html
+    assert "regole d&#39;oro del recupero" in html or "regole d'oro del recupero" in html

@@ -37,6 +37,13 @@
   <h3>Situazione fisica</h3>
   <form method="post" action="{{ url_for('impostazioni.aggiorna_fisico') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Sesso (per le soglie di confronto corrette)</label>
+    <select name="sesso">
+      <option value="" {% if not profile['sesso'] %}selected{% endif %}>Preferisco non indicarlo (soglie uomo)</option>
+      <option value="M" {% if profile['sesso']=='M' %}selected{% endif %}>Uomo</option>
+      <option value="F" {% if profile['sesso']=='F' %}selected{% endif %}>Donna</option>
+    </select>
+
     <label>Sport praticato</label>
     <input type="text" name="sport" value="{{ profile['sport'] or '' }}">
 

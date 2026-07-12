@@ -23,8 +23,31 @@
     alla tabella ufficiale del bando scelto per i requisiti minimi reali.
   </div>
   {% if bando %}<p style="font-size:0.85rem;">Bando di riferimento: <a href="{{ url_for('bandi.dettaglio', bando_id=bando['id']) }}">{{ bando['titolo'] }}</a></p>{% endif %}
-  <p><a class="btn btn-secondary" href="{{ url_for('coach.home') }}">🤖 Parla con il coach AI</a></p>
+  <p>
+    <a class="btn" href="{{ url_for('fisico.registra_test') }}">📏 Registra un test</a>
+    <a class="btn btn-secondary" href="{{ url_for('coach.home') }}">🤖 Parla con il coach AI</a>
+  </p>
 </div>
+
+{% if profile['limitazioni'] %}
+<div class="card">
+  <div class="disclaimer rosso" style="margin:0;">
+    ⚠️ Hai indicato queste limitazioni fisiche: <strong>{{ profile['limitazioni'] }}</strong>.
+    Adatta o salta gli esercizi che coinvolgono quell'area e parlane con un medico o fisioterapista
+    prima di forzare: nessun piano vale un infortunio a ridosso delle prove.
+  </div>
+</div>
+{% endif %}
+
+{% if piano.test_iniziale %}
+<div class="card">
+  <div class="disclaimer" style="border-left-color: var(--verde-brillante); margin:0;">
+    🧭 Ti mancano i dati di partenza (o hai chiesto il test guidato): la <strong>settimana 1 è di test</strong>.
+    Esegui le prove indicate e poi <a href="{{ url_for('fisico.registra_test') }}">registra i risultati</a>:
+    da lì il piano si calibrerà sui tuoi valori reali.
+  </div>
+</div>
+{% endif %}
 
 {% if soglie %}
 <div class="card">
@@ -43,6 +66,24 @@
           {% elif r.ok %}<span class="badge badge-attivo">✓ {{ r.gap }}</span>
           {% else %}<span class="badge badge-chiuso">✗ {{ r.gap }}</span>{% endif %}
         </td>
+      </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+{% if storico_test %}
+<div class="card">
+  <h3>📈 I tuoi test nel tempo</h3>
+  <table>
+    <tr><th>Data</th><th>Piegamenti</th><th>Trazioni</th><th>Corsa</th><th>Note</th></tr>
+    {% for t in storico_test %}
+      <tr>
+        <td>{{ t['data'] }}</td>
+        <td>{{ t['piegamenti'] if t['piegamenti'] is not none else '—' }}</td>
+        <td>{{ t['trazioni'] if t['trazioni'] is not none else '—' }}</td>
+        <td>{% if t['corsa_tempo_sec'] %}{{ t['corsa_distanza'] }} m in {{ t['corsa_tempo_sec'] // 60 }}'{{ '%02d' | format(t['corsa_tempo_sec'] % 60) }}"{% else %}—{% endif %}</td>
+        <td style="font-size:0.8rem;color:var(--testo-muto);">{{ t['note'] or '' }}</td>
       </tr>
     {% endfor %}
   </table>
@@ -92,9 +133,10 @@ document.addEventListener('click', function (e) {
             {{ '✓' if fatto else '○' }}
           </button>
         </form>
-        <div style="flex:1;{% if fatto %}opacity:0.6;{% endif %}">
+        <div style="flex:1;{% if fatto %}opacity:0.6;{% endif %}" data-riposo="{{ giorno.riposo_sec }}">
           <p style="margin:0 0 0.5rem;">
             <strong>Giorno {{ loop.index }} — {{ giorno.tipo }}</strong>
+            <span class="tag" title="Riposo consigliato tra gli esercizi">riposo {{ giorno.riposo_sec }}s</span>
             {% if not fatto %}
               <button type="button" class="btn btn-outline avvia-guidata" style="padding:0.2rem 0.6rem;font-size:0.78rem;margin-left:0.5rem;">▶ Sessione guidata</button>
             {% endif %}
@@ -121,6 +163,18 @@ document.addEventListener('click', function (e) {
   </div>
 {% endfor %}
 
+<div class="card">
+  <h3>🛌 Le regole d'oro del recupero</h3>
+  <ul style="font-size:0.9rem;">
+    <li><strong>Sonno</strong>: 7-9 ore a notte — è lì che il corpo si adatta all'allenamento, non durante.</li>
+    <li><strong>Mai due sessioni intense di fila sullo stesso gruppo muscolare</strong>: il piano alterna già forza e corsa per questo.</li>
+    <li><strong>Dolore acuto ≠ fatica</strong>: la fatica passa in 48h, il dolore localizzato che peggiora va fermato subito e valutato da un professionista.</li>
+    <li><strong>Idratazione e pasti regolari</strong>: allenarsi a digiuno o disidratati peggiora la prestazione e il recupero.</li>
+    <li><strong>Le settimane di scarico non sono opzionali</strong>: servono a consolidare i progressi, saltarle porta a stagnazione o infortunio.</li>
+  </ul>
+  <p style="font-size:0.8rem;color:var(--testo-muto);">Indicazioni generali di buon senso sportivo, non prescrizioni mediche.</p>
+</div>
+
 <script>
 // Sessione guidata: mostra un esercizio alla volta con timer di recupero tra
 // uno e l'altro. Legge gli esercizi già presenti nella pagina, nessuna
@@ -137,7 +191,7 @@ document.addEventListener('click', function (e) {
   if (!esercizi.length) return;
 
   var indice = 0;
-  var RIPOSO_SECONDI = 90;
+  var RIPOSO_SECONDI = parseInt(blocco.dataset.riposo, 10) || 90;
 
   function render() {
     if (indice >= esercizi.length) {
