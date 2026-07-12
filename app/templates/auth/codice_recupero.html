@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Codice di recupero{% endblock %}
+{% block content %}
+<div class="card" style="max-width:520px;margin:0 auto;text-align:center;">
+  {% if nuovo_account %}<h2>Benvenuto! Un'ultima cosa importante</h2>{% else %}<h2>Il tuo nuovo codice di recupero</h2>{% endif %}
+  <p style="font-size:0.95rem;">Questo è il tuo <strong>codice di recupero</strong>: è l'unico modo per
+    reimpostare la password se la dimentichi. Viene mostrato <strong>solo adesso</strong> — scrivilo
+    da qualche parte al sicuro (o fai uno screenshot).</p>
+  <p style="font-size:1.8rem;font-weight:700;letter-spacing:0.15em;background:rgba(47,158,68,0.1);border:2px dashed var(--verde-brillante);border-radius:8px;padding:0.8rem;">{{ codice }}</p>
+  <p style="font-size:0.8rem;color:var(--testo-muto);">Puoi rigenerarlo in qualsiasi momento dalle Impostazioni (quello vecchio smetterà di valere).</p>
+  <a class="btn" href="{{ url_for('onboarding.step1') if nuovo_account else url_for('main.dashboard') }}">Ho salvato il codice, continua</a>
+</div>
+{% endblock %}

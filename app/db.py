@@ -155,6 +155,14 @@ MIGRAZIONI = [
     "ALTER TABLE quiz_questions ADD COLUMN corpo_specifico TEXT",
     "ALTER TABLE profiles ADD COLUMN settimane_preferite INTEGER",
     "ALTER TABLE profiles ADD COLUMN sesso TEXT",
+    "ALTER TABLE users ADD COLUMN recovery_code_hash TEXT",
+    """CREATE TABLE IF NOT EXISTS feedback (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        email TEXT,
+        testo TEXT NOT NULL,
+        timestamp TEXT NOT NULL
+    )""",
     """CREATE TABLE IF NOT EXISTS test_fisici (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,

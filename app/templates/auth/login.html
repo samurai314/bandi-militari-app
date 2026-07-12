@@ -19,7 +19,8 @@
   </div>
 
   <p style="text-align:center;margin-top:1.2rem;font-size:0.9rem;color:var(--testo-attenuato);">
-    Non hai un account? <a href="{{ url_for('auth.register') }}">Registrati</a>
+    Non hai un account? <a href="{{ url_for('auth.register') }}">Registrati</a><br>
+    <a href="{{ url_for('auth.recupero') }}" style="font-size:0.85rem;">Password dimenticata?</a>
   </p>
 </div>
 {% endblock %}

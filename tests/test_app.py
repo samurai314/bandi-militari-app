@@ -16,8 +16,9 @@ def test_homepage_pubblica_accessibile(client):
 
 def test_registrazione_e_login(client):
     resp = registra(client)
-    assert resp.status_code == 302
-    assert "/onboarding/step1" in resp.headers["Location"]
+    # La registrazione ora mostra la pagina col codice di recupero (una volta sola)
+    assert resp.status_code == 200
+    assert "codice di recupero" in resp.get_data(as_text=True).lower()
 
     client.get("/auth/logout")
 
@@ -267,3 +268,73 @@ def test_piano_include_riscaldamento_e_recupero(client):
     html = resp.get_data(as_text=True)
     assert "Riscaldamento: 8-10" in html
     assert "regole d&#39;oro del recupero" in html or "regole d'oro del recupero" in html
+
+
+def test_recupero_password_con_codice(client, app):
+    import re
+
+    # Registrazione: la pagina di risposta mostra il codice di recupero
+    resp = client.get("/auth/register")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    resp = client.post(
+        "/auth/register",
+        data=dict(email="recupero@test.com", password="vecchia123", csrf_token=token),
+    )
+    html = resp.get_data(as_text=True)
+    assert "codice di recupero" in html.lower()
+    codice = re.search(r"([A-Z2-9]{4}-[A-Z2-9]{4})", html).group(1)
+
+    client.get("/auth/logout")
+
+    # Reset con codice giusto
+    resp = client.get("/auth/recupero")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    resp = client.post(
+        "/auth/recupero",
+        data=dict(email="recupero@test.com", codice=codice,
+                  nuova_password="nuova456", csrf_token=token),
+    )
+    assert resp.status_code == 200
+    assert "nuovo codice" in resp.get_data(as_text=True).lower() or "codice di recupero" in resp.get_data(as_text=True).lower()
+
+    client.get("/auth/logout")
+
+    # La vecchia password non vale più, la nuova sì
+    resp = login(client, email="recupero@test.com", password="vecchia123")
+    assert resp.status_code == 200  # resta sulla pagina con errore
+    resp = login(client, email="recupero@test.com", password="nuova456")
+    assert resp.status_code == 302
+
+    # Il vecchio codice è stato invalidato
+    client.get("/auth/logout")
+    resp = client.get("/auth/recupero")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    resp = client.post(
+        "/auth/recupero",
+        data=dict(email="recupero@test.com", codice=codice,
+                  nuova_password="altra789", csrf_token=token),
+        follow_redirects=True,
+    )
+    assert "non corretti" in resp.get_data(as_text=True)
+
+
+def test_feedback_pubblico(client, app):
+    resp = client.get("/feedback")
+    assert resp.status_code == 200
+    token = estrai_csrf(resp.get_data(as_text=True))
+    resp = client.post(
+        "/feedback",
+        data=dict(testo="Ottima app, ma la domanda 5 ha un refuso", email="x@y.it", csrf_token=token),
+        follow_redirects=True,
+    )
+    assert "ricevuto" in resp.get_data(as_text=True)
+    with app.app_context():
+        from app.db import get_db
+        assert get_db().execute("SELECT COUNT(*) c FROM feedback").fetchone()["c"] == 1
+
+
+def test_admin_nascosto_ai_non_admin(client):
+    registra(client, email="nonadmin@test.com")
+    completa_onboarding(client)
+    resp = client.get("/admin")
+    assert resp.status_code == 404

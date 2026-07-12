@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Recupera password{% endblock %}
+{% block content %}
+<div class="card" style="max-width:440px;margin:0 auto;">
+  <h2>Recupera la password</h2>
+  <p style="font-size:0.88rem;">Inserisci la tua email e il <strong>codice di recupero</strong> che ti
+    è stato mostrato alla registrazione (formato XXXX-XXXX), poi scegli una nuova password.</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>Email</label>
+    <input type="email" name="email" required autofocus>
+    <label>Codice di recupero</label>
+    <input type="text" name="codice" required placeholder="XXXX-XXXX" style="text-transform:uppercase;letter-spacing:0.1em;">
+    <label>Nuova password (min. 6 caratteri)</label>
+    <input type="password" name="nuova_password" required minlength="6">
+    <button class="btn" type="submit">Reimposta la password</button>
+  </form>
+  <p style="margin-top:1rem;font-size:0.85rem;">
+    Hai perso anche il codice? <a href="{{ url_for('main.feedback') }}">Contattaci</a> spiegando la situazione.
+  </p>
+</div>
+{% endblock %}

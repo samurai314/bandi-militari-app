@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Contattaci{% endblock %}
+{% block content %}
+<div class="card" style="max-width:560px;margin:0 auto;">
+  <h2>✉️ Contattaci / Segnala un problema</h2>
+  <p style="font-size:0.9rem;">Hai trovato un errore in una domanda, una scadenza sbagliata, o hai
+    un suggerimento? Scrivici qui: leggiamo tutto.</p>
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if not current_user %}
+      <label>La tua email (facoltativa, per risponderti)</label>
+      <input type="email" name="email" placeholder="tu@esempio.it">
+    {% endif %}
+    <label>Messaggio</label>
+    <textarea name="testo" rows="5" required maxlength="2000" placeholder="Descrivi il problema o il suggerimento..."></textarea>
+    <button class="btn" type="submit">Invia</button>
+  </form>
+</div>
+{% endblock %}

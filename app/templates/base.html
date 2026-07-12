@@ -72,7 +72,8 @@
     Verifica sempre bandi, scadenze e requisiti sulla Gazzetta Ufficiale e sui siti istituzionali prima di presentare domanda.
     <br>
     <a href="{{ url_for('main.chi_siamo') }}">Chi siamo</a> ·
-    <a href="{{ url_for('main.privacy') }}">Privacy e trattamento dati</a>
+    <a href="{{ url_for('main.privacy') }}">Privacy e trattamento dati</a> ·
+    <a href="{{ url_for('main.feedback') }}">Contattaci</a>
   </div>
 
   {% if current_user and request.endpoint not in ('agente.ask',) %}

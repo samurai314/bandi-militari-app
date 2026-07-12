@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, datetime
 
-from flask import Blueprint, current_app, redirect, render_template, url_for
+from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
 from ..db import get_db
 from ..fisico_engine import classifica_livello, genera_piano
@@ -24,6 +24,58 @@ def privacy():
 @bp.route("/chi-siamo")
 def chi_siamo():
     return render_template("chi_siamo.html")
+
+
+@bp.route("/feedback", methods=("GET", "POST"))
+def feedback():
+    if request.method == "POST":
+        testo = request.form.get("testo", "").strip()
+        if not testo:
+            flash("Scrivi un messaggio prima di inviare.", "error")
+            return redirect(url_for("main.feedback"))
+        db = get_db()
+        user = get_current_user()
+        db.execute(
+            "INSERT INTO feedback (user_id, email, testo, timestamp) VALUES (?, ?, ?, ?)",
+            (
+                user["id"] if user else None,
+                (user["email"] if user else request.form.get("email", "").strip()) or None,
+                testo[:2000],
+                datetime.utcnow().isoformat(),
+            ),
+        )
+        db.commit()
+        flash("Grazie! Il tuo messaggio è stato ricevuto.", "success")
+        return redirect(url_for("main.feedback"))
+    return render_template("feedback.html")
+
+
+@bp.route("/admin")
+@login_required
+def admin():
+    """Pannello minimo per il gestore: visibile solo all'email indicata in ADMIN_EMAIL."""
+    user = get_current_user()
+    admin_email = current_app.config.get("ADMIN_EMAIL")
+    if not admin_email or user["email"] != admin_email:
+        abort(404)
+
+    db = get_db()
+    oggi = date.today().isoformat()
+    stats = dict(
+        utenti=db.execute("SELECT COUNT(*) c FROM users").fetchone()["c"],
+        domande=db.execute("SELECT COUNT(*) c FROM quiz_questions").fetchone()["c"],
+        risposte_totali=db.execute("SELECT COALESCE(SUM(attempts),0) c FROM quiz_progress").fetchone()["c"],
+        sessioni_quiz_oggi=db.execute(
+            "SELECT COUNT(*) c FROM quiz_sessions_log WHERE timestamp LIKE ?", (f"{oggi}%",)
+        ).fetchone()["c"],
+        messaggi_ai_oggi=db.execute(
+            "SELECT COUNT(*) c FROM chat_messages WHERE ruolo='user' AND timestamp LIKE ?", (f"{oggi}%",)
+        ).fetchone()["c"],
+    )
+    ultimi_feedback = db.execute(
+        "SELECT * FROM feedback ORDER BY id DESC LIMIT 15"
+    ).fetchall()
+    return render_template("admin.html", stats=stats, ultimi_feedback=ultimi_feedback)
 
 
 @bp.route("/demo")

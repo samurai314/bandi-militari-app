@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>🛠️ Pannello di controllo</h2>
+  <div class="grid-3">
+    <div class="card" style="margin-bottom:0;text-align:center;">
+      <div class="streak-number">{{ stats.utenti }}</div>
+      <div style="font-size:0.8rem;color:var(--testo-muto);">utenti registrati</div>
+    </div>
+    <div class="card" style="margin-bottom:0;text-align:center;">
+      <div class="streak-number">{{ stats.domande }}</div>
+      <div style="font-size:0.8rem;color:var(--testo-muto);">domande nel database</div>
+    </div>
+    <div class="card" style="margin-bottom:0;text-align:center;">
+      <div class="streak-number">{{ stats.risposte_totali }}</div>
+      <div style="font-size:0.8rem;color:var(--testo-muto);">risposte quiz totali</div>
+    </div>
+    <div class="card" style="margin-bottom:0;text-align:center;">
+      <div class="streak-number">{{ stats.sessioni_quiz_oggi }}</div>
+      <div style="font-size:0.8rem;color:var(--testo-muto);">sessioni quiz oggi</div>
+    </div>
+    <div class="card" style="margin-bottom:0;text-align:center;">
+      <div class="streak-number">{{ stats.messaggi_ai_oggi }}</div>
+      <div style="font-size:0.8rem;color:var(--testo-muto);">messaggi AI oggi (costo!)</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>Ultimi feedback ricevuti</h3>
+  {% if ultimi_feedback %}
+    {% for f in ultimi_feedback %}
+      <div style="border-bottom:1px solid rgba(0,0,0,0.07);padding:0.5rem 0;">
+        <p style="font-size:0.8rem;color:var(--testo-muto);margin:0;">{{ f['timestamp'][:16] }} — {{ f['email'] or 'anonimo' }}</p>
+        <p style="margin:0.2rem 0 0;font-size:0.9rem;">{{ f['testo'] }}</p>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p style="color:var(--testo-muto);">Nessun feedback ancora.</p>
+  {% endif %}
+</div>
+{% endblock %}

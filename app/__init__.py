@@ -7,12 +7,39 @@ from flask import Flask, abort, request, session
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 
+def _backup_giornaliero(db_path, conserva=7):
+    """All'avvio, se non esiste già un backup di oggi, copia il database in
+    backups/ e tiene solo gli ultimi `conserva` file. Protezione minima contro
+    corruzioni o cancellazioni accidentali."""
+    import shutil
+    from datetime import date
+
+    db_file = Path(db_path)
+    if not db_file.exists():
+        return
+    cartella = db_file.parent / "backups"
+    cartella.mkdir(exist_ok=True)
+    destinazione = cartella / f"app-{date.today().isoformat()}.db"
+    if not destinazione.exists():
+        try:
+            shutil.copy2(db_file, destinazione)
+        except OSError:
+            return
+    vecchi = sorted(cartella.glob("app-*.db"))
+    for f in vecchi[:-conserva]:
+        try:
+            f.unlink()
+        except OSError:
+            pass
+
+
 def create_app(test_config=None):
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key-bandi-militari")
     app.config["DATABASE"] = os.path.join(app.root_path, "..", "instance", "app.db")
     app.config["ANTHROPIC_API_KEY"] = os.environ.get("ANTHROPIC_API_KEY")
     app.config["AI_ENABLED"] = bool(app.config["ANTHROPIC_API_KEY"])
+    app.config["ADMIN_EMAIL"] = os.environ.get("ADMIN_EMAIL")
 
     # Hardening del cookie di sessione. SESSION_COOKIE_SECURE va lasciato a
     # "false" in locale (http) e impostato a "true" nel .env di produzione
@@ -31,6 +58,9 @@ def create_app(test_config=None):
     with app.app_context():
         from .seed_data import seed_if_empty
         seed_if_empty()
+
+    if not app.config.get("TESTING"):
+        _backup_giornaliero(app.config["DATABASE"])
 
     from .routes import auth, main, onboarding, bandi, quiz, fisico, colloquio, checklist, agente, impostazioni, coach, teoria
 

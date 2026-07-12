@@ -94,6 +94,26 @@ def aggiorna_allenamento():
     return redirect(url_for("impostazioni.index"))
 
 
+@bp.route("/rigenera-codice", methods=("POST",))
+@login_required
+@onboarding_required
+def rigenera_codice():
+    from werkzeug.security import generate_password_hash
+
+    from .auth import genera_codice_recupero
+
+    db = get_db()
+    user = get_current_user()
+    codice = genera_codice_recupero()
+    db.execute(
+        "UPDATE users SET recovery_code_hash = ? WHERE id = ?",
+        (generate_password_hash(codice), user["id"]),
+    )
+    db.commit()
+    flash("Nuovo codice generato: quello vecchio non è più valido.", "success")
+    return render_template("auth/codice_recupero.html", codice=codice, nuovo_account=False)
+
+
 @bp.route("/esporta")
 @login_required
 @onboarding_required

@@ -116,6 +116,10 @@
   <p style="font-size:0.85rem;">Puoi scaricare una copia di tutti i dati che abbiamo su di te, o eliminare
     definitivamente il tuo account. Maggiori dettagli nella <a href="{{ url_for('main.privacy') }}">pagina privacy</a>.</p>
   <p><a class="btn btn-secondary" href="{{ url_for('impostazioni.esporta_dati') }}">⬇️ Scarica i miei dati (JSON)</a></p>
+  <form method="post" action="{{ url_for('impostazioni.rigenera_codice') }}" style="margin-bottom:0.8rem;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn btn-secondary" type="submit">🔑 Genera nuovo codice di recupero password</button>
+  </form>
 </div>
 
 <div class="card" style="border-color: var(--rosso);">
