@@ -31,6 +31,7 @@ def home():
     return render_template(
         "colloquio/intervista.html", messaggi=messaggi, valutazioni=valutazioni,
         ai_enabled=current_app.config["AI_ENABLED"],
+        tts_enabled=current_app.config["TTS_ENABLED"],
     )
 
 
@@ -91,6 +92,44 @@ def reset():
     db.execute("DELETE FROM chat_messages WHERE user_id = ? AND contesto = ?", (user["id"], CONTESTO))
     db.commit()
     return redirect(url_for("colloquio.home"))
+
+
+@bp.route("/tts", methods=("POST",))
+@login_required
+@onboarding_required
+def tts():
+    """Sintesi vocale realistica via ElevenLabs (se configurata). Il testo è
+    limitato per contenere i costi a crediti dell'account ElevenLabs."""
+    if not current_app.config["TTS_ENABLED"]:
+        return Response("TTS non configurato", status=503, mimetype="text/plain")
+
+    testo = request.form.get("testo", "").strip()
+    if not testo:
+        return Response("", status=400, mimetype="text/plain")
+    testo = testo[:900]
+
+    import httpx
+
+    voice_id = current_app.config["ELEVENLABS_VOICE_ID"]
+    try:
+        risposta = httpx.post(
+            f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}",
+            headers={
+                "xi-api-key": current_app.config["ELEVENLABS_API_KEY"],
+                "Content-Type": "application/json",
+            },
+            json={
+                "text": testo,
+                "model_id": "eleven_multilingual_v2",
+                "voice_settings": {"stability": 0.5, "similarity_boost": 0.75},
+            },
+            timeout=30.0,
+        )
+        if risposta.status_code != 200:
+            return Response("Errore dal servizio vocale", status=502, mimetype="text/plain")
+        return Response(risposta.content, mimetype="audio/mpeg")
+    except httpx.HTTPError:
+        return Response("Servizio vocale non raggiungibile", status=502, mimetype="text/plain")
 
 
 @bp.route("/ansia")

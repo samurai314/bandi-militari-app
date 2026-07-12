@@ -25,7 +25,8 @@
   ),
   ai_enabled,
   'Scrivi la tua risposta (o dettala col microfono)...',
-  voce=True
+  voce=True,
+  tts_url=(url_for('colloquio.tts') if tts_enabled else None)
 ) }}
 
 {% if ai_enabled %}

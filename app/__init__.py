@@ -40,6 +40,11 @@ def create_app(test_config=None):
     app.config["ANTHROPIC_API_KEY"] = os.environ.get("ANTHROPIC_API_KEY")
     app.config["AI_ENABLED"] = bool(app.config["ANTHROPIC_API_KEY"])
     app.config["ADMIN_EMAIL"] = os.environ.get("ADMIN_EMAIL")
+    # TTS realistico opzionale (ElevenLabs): se la chiave manca, il colloquio
+    # usa la voce del browser come fallback.
+    app.config["ELEVENLABS_API_KEY"] = os.environ.get("ELEVENLABS_API_KEY")
+    app.config["ELEVENLABS_VOICE_ID"] = os.environ.get("ELEVENLABS_VOICE_ID", "pNInz6obpgDQGcFmaJgB")
+    app.config["TTS_ENABLED"] = bool(app.config["ELEVENLABS_API_KEY"])
 
     # Hardening del cookie di sessione. SESSION_COOKIE_SECURE va lasciato a
     # "false" in locale (http) e impostato a "true" nel .env di produzione
