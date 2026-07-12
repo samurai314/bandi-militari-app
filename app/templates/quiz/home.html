@@ -16,6 +16,7 @@
   <p>
     <a class="btn" href="{{ url_for('quiz.avvia', mode='prova') }}">✅ Quiz prova (correzione immediata)</a>
     <a class="btn btn-secondary" href="{{ url_for('quiz.avvia', mode='timed') }}">⏱️ Quiz a tempo (15 domande)</a>
+    <a class="btn btn-secondary" href="{{ url_for('quiz.avvia', mode='maratona') }}">💪 Maratona (3 vite)</a>
     <a class="btn btn-outline" href="{{ url_for('quiz.statistiche') }}">📊 Statistiche</a>
     <a class="btn btn-outline" href="{{ url_for('quiz.ripasso_ai') }}">🤖 Ripasso AI sugli errori</a>
   </p>

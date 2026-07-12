@@ -2,7 +2,13 @@
 {% block title %}Risultati quiz{% endblock %}
 {% block content %}
 <div class="card">
-  {% if state.mode == 'esame' %}
+  {% if state.mode == 'maratona' %}
+    <h2>🏁 Maratona finita: {{ state.corrette }} risposte corrette</h2>
+    <p style="font-size:0.9rem;">
+      Hai affrontato {{ state.index }} domande prima di esaurire le vite.
+      {% if state.corrette >= 30 %}Prestazione da veterano! 🎖️{% elif state.corrette >= 15 %}Ottimo ritmo, continua così.{% else %}Riscaldamento fatto: riprova per battere il tuo record.{% endif %}
+    </p>
+  {% elif state.mode == 'esame' %}
     <h2>Punteggio esame: {{ '%.2f' | format(state.punteggio) }} / {{ state.question_ids|length }}</h2>
     <p style="font-size:0.9rem;">
       ✅ {{ state.corrette }} corrette ·
@@ -15,7 +21,9 @@
   {% else %}
     <h2>Risultato: {{ state.corrette }} / {{ state.question_ids|length }}</h2>
   {% endif %}
+  {% if state.mode != 'maratona' %}
   <div class="progress-bar"><div style="width:{{ (100*state.corrette/(state.question_ids|length)) if state.question_ids else 0 }}%"></div></div>
+  {% endif %}
   <p>
     <a class="btn" href="{{ url_for('quiz.home') }}">Torna ai quiz</a>
     <a class="btn btn-outline" href="{{ url_for('quiz.statistiche') }}">Vedi statistiche</a>
@@ -38,6 +46,7 @@
       {% endif %}
     </p>
     {% if r.spiegazione %}<p style="font-size:0.85rem;color:#666;">{{ r.spiegazione }}</p>{% endif %}
+    <p style="margin:0.3rem 0 0;"><a href="{{ url_for('main.feedback', testo='Segnalo un possibile errore nella domanda: "' ~ r.domanda[:120] ~ '"') }}" style="font-size:0.78rem;color:var(--testo-muto);">⚑ Segnala un errore in questa domanda</a></p>
   </div>
 {% endfor %}
 {% endblock %}

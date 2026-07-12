@@ -338,3 +338,50 @@ def test_admin_nascosto_ai_non_admin(client):
     completa_onboarding(client)
     resp = client.get("/admin")
     assert resp.status_code == 404
+
+
+def test_maratona_tre_vite(client, app):
+    registra(client, email="maratona@test.com")
+    completa_onboarding(client)
+
+    resp = client.get("/quiz/avvia?mode=maratona")
+    assert resp.status_code == 302
+
+    with client.session_transaction() as sess:
+        stato = sess["quiz_state"]
+        assert stato["mode"] == "maratona"
+        assert stato["vite"] == 3
+
+    # Risponde sempre sbagliato di proposito: al massimo in 3 colpi finiscono le vite.
+    with app.app_context():
+        from app.db import get_db
+        db = get_db()
+        for _ in range(10):
+            with client.session_transaction() as sess:
+                stato = sess["quiz_state"]
+            qid = stato["question_ids"][stato["index"]]
+            giusta = db.execute(
+                "SELECT risposta FROM quiz_questions WHERE id = ?", (qid,)
+            ).fetchone()["risposta"]
+            sbagliata = next(x for x in "ABCD" if x != giusta)
+            resp = client.get("/quiz/domanda")
+            html = resp.get_data(as_text=True)
+            assert "❤️" in html  # header con le vite
+            token = estrai_csrf(html)
+            resp = client.post(
+                "/quiz/domanda",
+                data=dict(risposta=sbagliata, csrf_token=token),
+            )
+            if resp.headers["Location"].endswith("/quiz/risultati"):
+                break
+
+    resp = client.get("/quiz/risultati")
+    html = resp.get_data(as_text=True)
+    assert "Maratona finita" in html
+    assert "⚑ Segnala un errore" in html
+
+
+def test_feedback_precompilato_da_querystring(client):
+    resp = client.get("/feedback?testo=Segnalo+un+errore+nella+domanda+X")
+    assert resp.status_code == 200
+    assert "Segnalo un errore nella domanda X" in resp.get_data(as_text=True)

@@ -12,7 +12,7 @@
       <input type="email" name="email" placeholder="tu@esempio.it">
     {% endif %}
     <label>Messaggio</label>
-    <textarea name="testo" rows="5" required maxlength="2000" placeholder="Descrivi il problema o il suggerimento..."></textarea>
+    <textarea name="testo" rows="5" required maxlength="2000" placeholder="Descrivi il problema o il suggerimento...">{{ request.args.get('testo', '') }}</textarea>
     <button class="btn" type="submit">Invia</button>
   </form>
 </div>

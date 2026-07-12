@@ -2,7 +2,14 @@
 {% block title %}Quiz - Domanda {{ numero }}{% endblock %}
 {% block content %}
 <div class="card">
-  <p style="font-size:0.85rem;color:var(--testo-muto);">Domanda {{ numero }} di {{ totale }} — modalità: {{ mode }}</p>
+  {% if mode == 'maratona' %}
+    <p style="font-size:0.95rem;">
+      {% for i in range(vite) %}❤️{% endfor %}{% for i in range(3 - vite) %}🖤{% endfor %}
+      &nbsp;·&nbsp; Punteggio: <strong>{{ corrette }}</strong>
+    </p>
+  {% else %}
+    <p style="font-size:0.85rem;color:var(--testo-muto);">Domanda {{ numero }} di {{ totale }} — modalità: {{ mode }}</p>
+  {% endif %}
   {% if secondi %}
     <p class="quiz-timer" id="timer">Tempo rimanente: {{ secondi }}s</p>
   {% endif %}

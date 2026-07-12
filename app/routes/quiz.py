@@ -65,9 +65,11 @@ def _aggiorna_progresso(db, user_id, question_id, corretto):
 
 
 def _termina_sessione(db, user, state):
+    # In maratona il totale è quante domande hai affrontato, non il pool pescato.
+    totale = state["index"] if state["mode"] == "maratona" else len(state["question_ids"])
     db.execute(
         "INSERT INTO quiz_sessions_log (user_id, mode, materia, total, correct, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
-        (user["id"], state["mode"], state["materia"], len(state["question_ids"]), state["corrette"], datetime.utcnow().isoformat()),
+        (user["id"], state["mode"], state["materia"], totale, state["corrette"], datetime.utcnow().isoformat()),
     )
     if state["mode"] == "esame":
         from ..utils import award_badge
@@ -129,6 +131,27 @@ def avvia():
         )
         return redirect(url_for("quiz.domanda"))
 
+    if mode == "maratona":
+        # Sudden death: si va avanti finché non si esauriscono le 3 vite.
+        # Stato minimo in sessione (niente lista risposte: solo contatori),
+        # per non sforare il limite del cookie con pool di domande grandi.
+        domande = db.execute(
+            "SELECT id FROM quiz_questions ORDER BY RANDOM() LIMIT 120"
+        ).fetchall()
+        session["quiz_state"] = dict(
+            mode="maratona",
+            materia=None,
+            question_ids=[d["id"] for d in domande],
+            index=0,
+            corrette=0,
+            vite=3,
+            risposte=[],
+            secondi_per_domanda=None,
+            in_attesa_conferma=False,
+            ultimo_feedback=None,
+        )
+        return redirect(url_for("quiz.domanda"))
+
     limit = MODE_LIMITS.get(mode, 10)
     domande = pick_questions(db, user["id"], materia=materia, limit=limit, mode=mode)
     if not domande:
@@ -182,7 +205,19 @@ def domanda():
         state["corrette"] += int(corretto)
         # Stato compatto (la sessione vive in un cookie da max ~4KB): solo id,
         # lettera data e esito. I dettagli si rileggono dal DB nei risultati.
-        state["risposte"].append(dict(q=question_id, r=risposta_data, ok=int(corretto)))
+        # In maratona si salvano solo gli errori (massimo 3), il resto è conteggio.
+        if state["mode"] != "maratona" or not corretto:
+            state["risposte"].append(dict(q=question_id, r=risposta_data, ok=int(corretto)))
+
+        if state["mode"] == "maratona":
+            if not corretto:
+                state["vite"] -= 1
+            state["index"] += 1
+            session["quiz_state"] = state
+            if state["vite"] <= 0 or state["index"] >= len(state["question_ids"]):
+                _termina_sessione(db, user, state)
+                return redirect(url_for("quiz.risultati"))
+            return redirect(url_for("quiz.domanda"))
 
         if state["mode"] == "prova":
             state["in_attesa_conferma"] = True
@@ -212,6 +247,7 @@ def domanda():
         numero=state["index"] + 1, totale=len(state["question_ids"]),
         secondi=state["secondi_per_domanda"], mode=state["mode"],
         tempo_rimanente=tempo_rimanente,
+        vite=state.get("vite"), corrette=state.get("corrette", 0),
         in_attesa_conferma=state.get("in_attesa_conferma", False),
         ultimo_feedback=state.get("ultimo_feedback"),
     )
