@@ -107,6 +107,13 @@
       {% endfor %}
     </select>
 
+    <label>Obiettivo giornaliero di domande quiz</label>
+    <select name="obiettivo_giornaliero">
+      {% for n in [10, 20, 30, 50] %}
+        <option value="{{ n }}" {% if (profile['obiettivo_giornaliero'] or 20)==n %}selected{% endif %}>{{ n }} domande al giorno</option>
+      {% endfor %}
+    </select>
+
     <button class="btn" type="submit">Aggiorna allenamento</button>
   </form>
 </div>

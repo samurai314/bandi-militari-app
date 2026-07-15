@@ -81,11 +81,12 @@ def aggiorna_allenamento():
     db = get_db()
     user = get_current_user()
     db.execute(
-        "UPDATE profiles SET contesto = ?, giorni_settimana = ?, settimane_preferite = ? WHERE user_id = ?",
+        "UPDATE profiles SET contesto = ?, giorni_settimana = ?, settimane_preferite = ?, obiettivo_giornaliero = ? WHERE user_id = ?",
         (
             request.form.get("contesto"),
             request.form.get("giorni_settimana"),
             request.form.get("settimane_preferite") or None,
+            request.form.get("obiettivo_giornaliero") or None,
             user["id"],
         ),
     )

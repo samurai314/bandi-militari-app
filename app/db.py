@@ -156,6 +156,7 @@ MIGRAZIONI = [
     "ALTER TABLE profiles ADD COLUMN settimane_preferite INTEGER",
     "ALTER TABLE profiles ADD COLUMN sesso TEXT",
     "ALTER TABLE users ADD COLUMN recovery_code_hash TEXT",
+    "ALTER TABLE profiles ADD COLUMN obiettivo_giornaliero INTEGER",
     """CREATE TABLE IF NOT EXISTS feedback (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,

@@ -385,3 +385,24 @@ def test_feedback_precompilato_da_querystring(client):
     resp = client.get("/feedback?testo=Segnalo+un+errore+nella+domanda+X")
     assert resp.status_code == 200
     assert "Segnalo un errore nella domanda X" in resp.get_data(as_text=True)
+
+
+def test_dashboard_obiettivo_e_calendario(client):
+    registra(client, email="obiettivo@test.com")
+    completa_onboarding(client)
+
+    resp = client.get("/dashboard")
+    html = resp.get_data(as_text=True)
+    assert "Obiettivo di oggi" in html
+    assert "/ 20 domande quiz" in html  # default
+    assert "calendario-attivita" in html
+
+    # Cambia l'obiettivo dalle impostazioni e verifica che la dashboard lo rifletta.
+    resp = client.get("/impostazioni/")
+    token = estrai_csrf(resp.get_data(as_text=True))
+    client.post(
+        "/impostazioni/allenamento",
+        data=dict(contesto="casa", giorni_settimana=3, settimane_preferite="", obiettivo_giornaliero=50, csrf_token=token),
+    )
+    resp = client.get("/dashboard")
+    assert "/ 50 domande quiz" in resp.get_data(as_text=True)

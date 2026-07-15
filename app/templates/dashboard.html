@@ -56,6 +56,22 @@
   </div>
 </div>
 
+<div class="card">
+  <h3>🎯 Obiettivo di oggi</h3>
+  {% set pct_obiettivo = (100 * domande_oggi / obiettivo_giornaliero) | round | int %}
+  <p style="font-size:0.9rem;margin:0.2rem 0 0.4rem;">
+    <strong>{{ domande_oggi }}</strong> / {{ obiettivo_giornaliero }} domande quiz
+    {% if domande_oggi >= obiettivo_giornaliero %} — obiettivo raggiunto! 🎉
+    {% elif domande_oggi > 0 %} — ci sei quasi, continua!
+    {% else %} — inizia con un <a href="{{ url_for('quiz.avvia', mode='prova') }}">quiz prova</a>.
+    {% endif %}
+  </p>
+  <div class="progress-bar"><div style="width:{{ [pct_obiettivo, 100] | min }}%"></div></div>
+  <p style="font-size:0.75rem;color:var(--testo-muto);margin:0.3rem 0 0;">
+    Puoi cambiare l'obiettivo nelle <a href="{{ url_for('impostazioni.index') }}">impostazioni</a>.
+  </p>
+</div>
+
 {% if azioni_oggi %}
 <div class="card">
   <h3>📅 Cosa fare oggi</h3>
@@ -109,6 +125,22 @@
       {% else %}
         <span style="font-size:0.85rem;color:var(--testo-muto);">Ancora nessun badge: continua così!</span>
       {% endif %}
+    </div>
+  </div>
+  <div style="margin-top:1rem;">
+    <p style="font-size:0.82rem;color:var(--testo-muto);margin:0 0 0.4rem;">Le tue ultime 12 settimane (quiz, allenamenti, colloqui):</p>
+    <div class="calendario-attivita">
+      {% for settimana in calendario | batch(7) %}
+        <div class="cal-colonna">
+          {% for giorno in settimana %}
+            {% if giorno %}
+              <div class="cal-cella cal-{{ giorno.intensita }}" title="{{ giorno.data }}: {{ giorno.n }} attività"></div>
+            {% else %}
+              <div class="cal-cella" style="visibility:hidden;"></div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endfor %}
     </div>
   </div>
 </div>

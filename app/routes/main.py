@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
 
@@ -172,6 +172,35 @@ def dashboard():
     badges = db.execute("SELECT * FROM badges WHERE user_id = ?", (user["id"],)).fetchall()
     badge_labels = [BADGE_LABELS.get(b["codice"], b["codice"]) for b in badges]
 
+    # Obiettivo giornaliero: domande risposte oggi rispetto al target scelto.
+    obiettivo_giornaliero = profile["obiettivo_giornaliero"] or 20
+    domande_oggi = db.execute(
+        "SELECT COALESCE(SUM(total), 0) AS c FROM quiz_sessions_log WHERE user_id = ? AND timestamp >= ?",
+        (user["id"], date.today().isoformat()),
+    ).fetchone()["c"]
+
+    # Calendario attività: quante attività (sessioni quiz, allenamenti,
+    # scambi di colloquio) per ciascuno degli ultimi 84 giorni (12 settimane).
+    inizio_calendario = (date.today() - timedelta(days=83)).isoformat()
+    conteggi_giorno = {}
+    for query in (
+        "SELECT substr(timestamp, 1, 10) AS d, COUNT(*) AS n FROM quiz_sessions_log WHERE user_id = ? AND timestamp >= ? GROUP BY d",
+        "SELECT substr(completato_at, 1, 10) AS d, COUNT(*) AS n FROM workout_log WHERE user_id = ? AND completato_at >= ? GROUP BY d",
+        "SELECT substr(timestamp, 1, 10) AS d, COUNT(*) AS n FROM colloquio_log WHERE user_id = ? AND timestamp >= ? GROUP BY d",
+    ):
+        for r in db.execute(query, (user["id"], inizio_calendario)).fetchall():
+            conteggi_giorno[r["d"]] = conteggi_giorno.get(r["d"], 0) + r["n"]
+
+    calendario = []
+    # Celle vuote iniziali per allineare il primo giorno al suo giorno della settimana.
+    primo_giorno = date.today() - timedelta(days=83)
+    calendario.extend([None] * primo_giorno.weekday())
+    for i in range(83, -1, -1):
+        g = date.today() - timedelta(days=i)
+        n = conteggi_giorno.get(g.isoformat(), 0)
+        intensita = 0 if n == 0 else (1 if n == 1 else (2 if n <= 3 else 3))
+        calendario.append(dict(data=g.strftime("%d/%m"), n=n, intensita=intensita))
+
     checklist_totale = db.execute("SELECT COUNT(*) AS c FROM checklist_template").fetchone()["c"]
     checklist_fatti = db.execute(
         "SELECT COUNT(*) AS c FROM user_checklist WHERE user_id = ? AND checked = 1", (user["id"],)
@@ -198,4 +227,7 @@ def dashboard():
         checklist_fatti=checklist_fatti,
         prontezza=prontezza,
         azioni_oggi=azioni_oggi,
+        obiettivo_giornaliero=obiettivo_giornaliero,
+        domande_oggi=domande_oggi,
+        calendario=calendario,
     )
