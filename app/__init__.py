@@ -40,6 +40,10 @@ def create_app(test_config=None):
     app.config["ANTHROPIC_API_KEY"] = os.environ.get("ANTHROPIC_API_KEY")
     app.config["AI_ENABLED"] = bool(app.config["ANTHROPIC_API_KEY"])
     app.config["ADMIN_EMAIL"] = os.environ.get("ADMIN_EMAIL")
+    app.config["DEPLOY_TOKEN"] = os.environ.get("DEPLOY_TOKEN")
+    app.config["DEPLOY_WSGI_FILE"] = os.environ.get(
+        "DEPLOY_WSGI_FILE", "/var/www/samurai1432_pythonanywhere_com_wsgi.py"
+    )
     # TTS realistico opzionale (ElevenLabs): se la chiave manca, il colloquio
     # usa la voce del browser come fallback.
     app.config["ELEVENLABS_API_KEY"] = os.environ.get("ELEVENLABS_API_KEY")
@@ -133,6 +137,10 @@ def create_app(test_config=None):
     @app.before_request
     def enforce_csrf():
         if request.method == "POST":
+            # /deploy è chiamato da fuori (senza sessione browser) ed è
+            # protetto dal proprio token segreto, non dal token di sessione.
+            if request.endpoint == "main.deploy":
+                return
             submitted = request.form.get("csrf_token")
             if not submitted or submitted != session.get("csrf_token"):
                 abort(400, description="Token di sicurezza mancante o non valido. Ricarica la pagina e riprova.")

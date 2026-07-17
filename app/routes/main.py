@@ -1,3 +1,4 @@
+import os
 from datetime import date, datetime, timedelta
 
 from flask import Blueprint, abort, current_app, flash, redirect, render_template, request, url_for
@@ -76,6 +77,39 @@ def admin():
         "SELECT * FROM feedback ORDER BY id DESC LIMIT 15"
     ).fetchall()
     return render_template("admin.html", stats=stats, ultimi_feedback=ultimi_feedback)
+
+
+@bp.route("/deploy", methods=("POST",))
+def deploy():
+    """Aggiorna il codice sul server senza passare dalla console PythonAnywhere:
+    git pull della repo e touch del file WSGI (che su PythonAnywhere ricarica
+    l'app). Protetto da un token segreto (DEPLOY_TOKEN); se il token non è
+    configurato l'endpoint semplicemente non esiste (404)."""
+    import hmac
+    import subprocess
+
+    token_atteso = current_app.config.get("DEPLOY_TOKEN")
+    if not token_atteso:
+        abort(404)
+    fornito = request.form.get("token", "")
+    if not hmac.compare_digest(fornito, token_atteso):
+        abort(403)
+
+    repo_dir = os.path.dirname(current_app.root_path)
+    risultato = subprocess.run(
+        ["git", "-C", repo_dir, "pull", "--ff-only"],
+        capture_output=True, text=True, timeout=120,
+    )
+    output = (risultato.stdout + risultato.stderr).strip()
+    if risultato.returncode != 0:
+        return {"ok": False, "git": output}, 500
+
+    wsgi = current_app.config.get("DEPLOY_WSGI_FILE")
+    ricaricato = False
+    if wsgi and os.path.exists(wsgi):
+        os.utime(wsgi, None)
+        ricaricato = True
+    return {"ok": True, "git": output, "reload": ricaricato}
 
 
 @bp.route("/demo")

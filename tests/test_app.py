@@ -406,3 +406,14 @@ def test_dashboard_obiettivo_e_calendario(client):
     )
     resp = client.get("/dashboard")
     assert "/ 50 domande quiz" in resp.get_data(as_text=True)
+
+
+def test_deploy_endpoint_protetto(client, app):
+    # Senza DEPLOY_TOKEN configurato l'endpoint non esiste.
+    resp = client.post("/deploy", data=dict(token="x"))
+    assert resp.status_code == 404
+
+    # Con il token configurato, un token errato viene rifiutato.
+    app.config["DEPLOY_TOKEN"] = "segreto-di-prova"
+    resp = client.post("/deploy", data=dict(token="sbagliato"))
+    assert resp.status_code == 403
